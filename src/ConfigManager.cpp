@@ -2,6 +2,8 @@
 //Since Arduino doesnt support c++ STL libraries, a simply used a workaround
 
 #include "ConfigManager.h"
+#include <Wire.h>
+
 
 ConfigManager::ConfigManager(){
 
