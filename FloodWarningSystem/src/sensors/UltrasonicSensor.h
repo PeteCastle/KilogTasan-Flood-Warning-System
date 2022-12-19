@@ -6,8 +6,9 @@ class UltrasonicSensor{
     public:
         UltrasonicSensor( int TRIG_PIN,  int ECHO_PIN,  double RIVER_DEPTH,  int YELLOW_LEVEL_THRESHOLD,  int ORANGE_LEVEL_THRESHOLD,  int RED_LEVEL_THRESHOLD);
         double getDistance();
-        double getRiverLevel();
+        double getRiverLevel(int currentDistance = -1);
         void begin();
+        int getWarningLevel(int currentDistance = -1);
     private:
         const int _TRIG_PIN;
         const int _ECHO_PIN;

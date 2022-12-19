@@ -12,10 +12,10 @@ void LCDManager::begin(){
     LiquidCrystal_I2C::begin();
     LiquidCrystal_I2C::backlight();
     LiquidCrystal_I2C::setCursor(0,0);
-    LiquidCrystal_I2C::print("Arduino Flood");
+    LiquidCrystal_I2C::print(String(F("Arduino Flood")));
     LiquidCrystal_I2C::setCursor(0,1);
-    LiquidCrystal_I2C::print("Warning System");
-    Serial.println("LCDManager initialization complete.");
+    LiquidCrystal_I2C::print(String(F("Warning System")));
+    Serial.println(String(F("LCDManager initialization complete.")));
 }
 void LCDManager::printText(String attributeName, int value, int row){
     LiquidCrystal_I2C::setCursor(0,row);

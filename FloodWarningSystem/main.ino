@@ -25,6 +25,11 @@
     // Same goes with LiquidCrystal I2C
     // LiquidCrystal_I2C "init" changed to "begin" contradictory to previously tested method.
     // SDManager::readFile still does not save to the vector.  Temporarily replaced with default Serial.write
+    // SIM.print() in in sending messages: Data type changed to String instead of char.
+
+// FOR FUTURE UPDATES:
+    // Live website status
+    // Status via SMS manually by ppl.
 
 //CONFIGURATION FILES
 //Digital Pins
@@ -50,12 +55,26 @@ const byte RAIN_SENSITIVITY= 16;
 
 //Environmental Configs
 const int RIVER_DEPTH= 100; // in centimeters
+const String RIVER_NAME = "Kiko River"; 
 const byte YELLOW_RAIN_THRESHOLD= 40; // Will be changed later.
 const byte ORANGE_RAIN_THRESHOLD= 40;
 const byte RED_RAIN_THRESHOLD= 40;
 const int YELLOW_LEVEL_THRESHOLD= 4; //Threshold for water level is measured by the distance from the ultrasonic sensor to the current water level
 const int ORANGE_LEVEL_THRESHOLD= 2.5;
 const int RED_LEVEL_THRESHOLD= 1;
+typedef struct {
+    uint8_t lang;
+    String name;
+} WarningDictionary;
+const WarningDictionary levelDict[] {
+    {0, String("None")},
+    {1, String("Yellow")},
+    {2, String("Orange")},
+    {3, String("Red")}
+};
+
+//File Configs
+const String RECIPIENTS_FILE = "recipients.txt";
 
 LCDManager lcd(LCD_ADDRESS, LCD_CHAR_COUNT, LCD_ROW_COUNT);
 SIMManager sim(SIM_RX_PIN, SIM_TX_PIN, SIM_RESET_PIN);
@@ -72,7 +91,52 @@ void setup(){
     sd.begin();
 }
 
+
+// CORE WARNING SYSTEM
+// SAVE TO DATABSE
+
 void loop(){
-    Serial.println("Hello World");
-    delay(1000);
+    int currentRainLevel = rainSensor.getSampledValue();
+    int currentRiverLevel = ultrasonicSensor.getRiverLevel();
+    
+    int currentRainWarning = rainSensor.getWarningLevel(currentRainLevel);
+    int currentLevelWarning = ultrasonicSensor.getWarningLevel(currentRiverLevel);
+
+    if (currentRainWarning > 0 | currentLevelWarning > 0){
+        String message1 = String(F("[RIVER WARNING SYSTEM] "));
+        String message2 = String(F("DATETIMEHERE"));
+        String message3 = String(F(" rainfall warning ang inaasahan malapit sa "));
+        String message4 = String(F(". Asahan ang pag-ulan sa loob ng ilang oras."));
+        String message5 = String(F(" ang kalagayan sa " ));
+        String message6 = String(F(". Mag-ingat sa posibilidad ng pagbaha sa loob ng ilang oras."));
+        String message7 = String(F("Mag-ingat sa posibilidad ng pagbaha at pagulan sa loob ng ilang oras."));
+        String message8 = String(F("Inaanyayahan ang lahat na lumikas sa pinakamalapit na evacuation center."));
+        String message9 = String(F("Inuutusan ang lahat na lumikas sa pinakamalapit na evacuation center."));
+        String message10 = String(F("."));
+
+        if(currentRainWarning > 0 && currentLevelWarning == 0){
+            String message = message1 + message2 + levelDict[currentRainWarning].name + message3, RIVER_NAME, message4;
+            sim.sendSmsMultipleRecipients(message, sd.readFile(RECIPIENTS_FILE));
+        }
+        else if (currentLevelWarning > 0 && currentRainWarning == 0){
+            String message = message1 + message2 + levelDict[currentLevelWarning].name + 
+                message5 + RIVER_NAME + message6;
+            sim.sendSmsMultipleRecipients(message, sd.readFile(RECIPIENTS_FILE));
+        }
+        else{ // If both have warning levels
+            // Selects whichever is higher
+            int highestLevel = currentLevelWarning > currentRainWarning ? highestLevel = currentLevelWarning : highestLevel = currentRainWarning;
+
+            String message = message1 + message2 + levelDict[highestLevel].name + message5 + RIVER_NAME + message10;
+                
+            if (highestLevel == 1 ) message += message7;
+            else if (highestLevel == 2 ) message += message8;
+            else if (highestLevel == 3 ) message += message9;
+
+            sim.sendSmsMultipleRecipients(message, sd.readFile(RECIPIENTS_FILE));
+        }
+    }
+
+    // Serial.println("Hello World");
+    delay(10000);
 }

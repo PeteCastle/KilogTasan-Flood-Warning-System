@@ -15,8 +15,9 @@ class RainSensor{
     public:
         RainSensor( uint8_t RAIN_SENSOR_PIN,  byte SAMPLES,  byte SENSITIVITY,  byte YELLOW_RAIN_THRESHOLD,  byte ORANGE_RAIN_THRESHOLD,  byte RED_RAIN_THRESHOLD);
         byte getSampledValue();
-        bool isRaining();
+        //bool isRaining();
         void begin();
+        int getWarningLevel(int currentRainLevel);
   
 };
 

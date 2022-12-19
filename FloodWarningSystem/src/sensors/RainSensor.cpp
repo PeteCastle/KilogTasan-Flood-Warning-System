@@ -44,7 +44,23 @@ byte RainSensor::getSampledValue(){
     return val;
 }
 
-bool RainSensor::isRaining(){
-    //TO DO: Is raining for multiple warning system
-    return (getSampledValue() >= _YELLOW_RAIN_THRESHOLD) ? true : false;
+int RainSensor::getWarningLevel(int currentRainLevel = -1){
+    currentRainLevel==-1 ? currentRainLevel = getSampledValue() : false;
+
+    if (currentRainLevel >= _RED_RAIN_THRESHOLD ){
+        return 3;
+    }
+    else if (currentRainLevel >= _ORANGE_RAIN_THRESHOLD && currentRainLevel < _RED_RAIN_THRESHOLD){
+        return 2;
+    }
+    else if (currentRainLevel >= _YELLOW_RAIN_THRESHOLD && currentRainLevel  <_ORANGE_RAIN_THRESHOLD){
+        return 1;
+    }
+    else if (currentRainLevel < _YELLOW_RAIN_THRESHOLD){
+        return 0;
+    }
+    else{
+        Serial.println("rainLevel outside the range.");
+    }
+
 }

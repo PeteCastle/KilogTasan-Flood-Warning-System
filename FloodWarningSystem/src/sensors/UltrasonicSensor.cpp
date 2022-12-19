@@ -31,8 +31,8 @@ double UltrasonicSensor::getDistance(){
     return (distance >= 900) ?  0 : distance;
 }
 
-double UltrasonicSensor::getRiverLevel(){
-    int currentDistance = getDistance();
+double UltrasonicSensor::getRiverLevel(int currentDistance){
+    currentDistance==-1 ? currentDistance = getDistance() : false;
     double waterLevel = _RIVER_DEPTH - currentDistance;
 
     if (waterLevel == _RIVER_DEPTH){
@@ -44,5 +44,25 @@ double UltrasonicSensor::getRiverLevel(){
     }
     else {
         return waterLevel;
+    }
+}
+
+int UltrasonicSensor::getWarningLevel(int currentDistance){
+    currentDistance==-1 ? currentDistance = getDistance() : false;
+
+    if (currentDistance <= _RED_LEVEL_THRESHOLD ){
+        return 3;
+    }
+    else if (currentDistance <= _ORANGE_LEVEL_THRESHOLD && currentDistance > _RED_LEVEL_THRESHOLD){
+        return 2;
+    }
+    else if (currentDistance <= _YELLOW_LEVEL_THRESHOLD && currentDistance > _ORANGE_LEVEL_THRESHOLD){
+        return 1;
+    }
+    else if (currentDistance >_YELLOW_LEVEL_THRESHOLD){
+        return 0;
+    }
+    else{
+        Serial.println(String(F("currentDistance outside the range.")));
     }
 }

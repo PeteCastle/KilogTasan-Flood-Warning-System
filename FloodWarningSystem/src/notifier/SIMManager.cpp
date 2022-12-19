@@ -37,7 +37,7 @@ void SIMManager::reset(){
     while (_readSerial().indexOf("SMS")==-1 ){}
 }
 
-bool SIMManager::sendSms(char number, char text){
+bool SIMManager::sendSms(String number, String text){
     SIM.print (F("AT+CMGF=1\r")); //set sms to text mode  
     _buffer=_readSerial();
     SIM.print (F("AT+CMGS=\""));  // command to send sms
@@ -51,4 +51,10 @@ bool SIMManager::sendSms(char number, char text){
     _buffer=_readSerial();
     //expect CMGS:xxx   , where xxx is a number,for the sending sms.
     return _buffer.indexOf("CMGS")  != -1 ?  true: false;
+}
+
+void SIMManager::sendSmsMultipleRecipients(String message, Vector<String> listOfRecipients){
+    for(String recipient : listOfRecipients){
+        sendSms(recipient, message);
+    }
 }
