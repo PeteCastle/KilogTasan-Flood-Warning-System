@@ -58,3 +58,33 @@ void SIMManager::sendSmsMultipleRecipients(String message, Vector<String> listOf
         sendSms(recipient, message);
     }
 }
+
+//https://m2msupport.net/m2msupport/globe-telecomphilippines-set-the-apn-to-internet-globe-com-ph/
+//https://stackoverflow.com/questions/63187583/arduino-sim900-atsapbr-1-1-operation-not-allowed
+
+// void sendHttpRequest(){
+//     SIM.print(F("AT+SAPBR=3,1,\"Contype\",\"GPRS\"\r"));
+//     SIM.flush();
+//     SIM.print("AT+SAPBR=3,1,\"APN\",\"internet.globe.com.ph\"\r");
+//     SIM.flush(); 
+//     SIM.print("AT+SAPBR=1,1\r");
+//     delay(15000);  
+//     SIM.flush(); 
+
+//     SIM.print("AT+SAPBR=2,1\r");
+//     Serial.println(_readSerial());
+
+//     SIM.print("AT+HTTPINIT\r");
+//     SIM.flush();
+//     SIM.print("AT+HTTPPARA=\"CID\",1\r");
+//     SIM.flush();
+//     SIM.flush();
+//     SIM.print("AT+HTTPPARA=\"URL\",\"my-api.com/foo\"\r");
+//     SIM.flush();
+//     SIM.print("AT+HTTPPARA=\"CONTENT\",\"application/json\"\r");
+//     SIM.flush();
+//     SIM.print("AT+HTTPACTION=0\r");
+//     SIM.flush();
+//     SIM.print("AT+HTTPREAD\r");
+//     SIM.flush();
+// }

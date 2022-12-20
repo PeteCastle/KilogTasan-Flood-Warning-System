@@ -13,6 +13,7 @@ class SIMManager{
         bool sendSms(String number, String text);
         void begin();
         void sendSmsMultipleRecipients(String message, Vector<String> listOfRecipients);
+        void sendHttpRequest();
 
     private:
         const int _SIM_RX_PIN;

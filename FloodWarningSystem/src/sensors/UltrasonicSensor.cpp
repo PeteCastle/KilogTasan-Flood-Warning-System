@@ -13,7 +13,7 @@ void UltrasonicSensor::begin(){
     pinMode(_TRIG_PIN, OUTPUT);
     pinMode(_ECHO_PIN, INPUT);
 }
-double UltrasonicSensor::getDistance(){
+int UltrasonicSensor::getDistance(){
     // Note that measurements are always in centimeters (CM)
     digitalWrite(_TRIG_PIN, LOW);
     delayMicroseconds(2); 
@@ -24,7 +24,7 @@ double UltrasonicSensor::getDistance(){
     digitalWrite(_TRIG_PIN, LOW);
 
     long duration = pulseIn(_ECHO_PIN, HIGH);
-    double distance = duration * 0.034 / 2;
+    int distance = duration * 0.034 / 2;
 
     //This is to return zero when the the distane is actually close (<0.10m).  Reads 900.  Max should be 400 or 4m
     // TO DO: The ultrasonic sensor is not yet tested when distance is greater than 4m
