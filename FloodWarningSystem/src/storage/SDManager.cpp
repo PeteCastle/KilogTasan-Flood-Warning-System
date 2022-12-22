@@ -4,22 +4,21 @@
     _SC_CS_PIN(SD_CS_PIN){
     }
 
-void SDManager::begin(){
-    Serial.print(String(F("Initializing SD card...")));
+bool SDManager::begin(){
     if (!SD.begin(_SC_CS_PIN)) {
-        Serial.println(String(F("Initialization of sd card failed. SDManager.cpp:9")));
+       // Serial.println(String(F("Initialization of sd card failed. SDManager.cpp:9")));
         // Serial.println("1. is a card inserted?");
         // Serial.println("2. is your wiring correct?");
         // Serial.println("3. did you change the chipSelect pin to match your shield or module?");
         // Serial.println("Note: press reset button on the board and reopen this Serial Monitor after fixing your issue!");
-        while (true);
+        return false;
     }
     Serial.println(String(F("initialization done.")));
+    return true;
 }
 
 void SDManager::writeFile(const String filePath, String value){
     File dataFile = SD.open(filePath, FILE_WRITE);
-
     if(dataFile){
         dataFile.println(value);
         dataFile.close();
@@ -74,14 +73,11 @@ Vector<String> SDManager::readFile(String filePath){
     else{
         Serial.println(String(F("An error has occured while opening file: ")) + filePath);
     }
-
-
-
     return vector;
-
 }
 
 void SDManager::removeFile(const String filePath){
     SD.remove(filePath);
     Serial.println("Removed file: " + filePath);
 }
+

@@ -21,52 +21,44 @@
 // Try to deprecate VECTOR and use methods when sending to multiple recipientss
 // Use API to get time.
 
-// REMINDERS:
-    // SoftwareSerial instantiation is done before begin itself.  May not workin since its not placed in begin()
-    // Same goes with LiquidCrystal I2C
-    // LiquidCrystal_I2C "init" changed to "begin" contradictory to previously tested method.
-    // SDManager::readFile still does not save to the vector.  Temporarily replaced with default Serial.write
-    // SIM.print() in in sending messages: Data type changed to String instead of char.
-
 // FOR FUTURE UPDATES:
     // Live website status
     // Status via SMS manually by ppl.
 
 //CONFIGURATION FILES
 //Digital Pins
-#define SIM_RESET_PIN (int) 2 //const int SIM_RESET_PIN= 2;
-#define SD_CS_PIN (int) 3 //const int SDC_CS_PIN= 3;
-#define ULTRASONIC_TRIG_PIN (int) 4 //const int ULTRASONIC_TRIG_PIN= 4;
-#define ULTRASONIC_ECHO_PIN (int) 5 //const int ULTRASONIC_ECHO_PIN= 5;
-#define SIM_RX_PIN (int) 6 //const int SIM_RX_PIN= 6;
-#define SIM_TX_PIN (int) 7  //const int SIM_TX_PIN= 7;
-#define SD_SDO_PIN (int) 11 //const int SD_SDO_PIN= 11;
-#define SD_SDI_PIN (int) 12  //const int SD_SDI_PIN= 12;
-#define SD_CLK_PIN (int) 13 //const int SD_CLK_PIN= 13;
+#define SIM_RESET_PIN (int) -1 // Not connected as there's no use yet
+#define SIM_TX_PIN (int) 2
+#define SIM_RX_PIN (int) 3
+#define ULTRASONIC_TRIG_PIN (int) 4 
+#define ULTRASONIC_ECHO_PIN (int) 5 
+#define SD_SCK_PIN (int) 13
+#define SD_MISO_PIN (int) 12
+#define SD_MOSI_PIN (int) 11
+#define SD_CS_PIN (int) 10
 
 //Analog pins
-#define LCD_ADDRESS (uint8_t) 0x27 //const uint8_t LCD_ADDRESS= 0x27;
-#define RAIN_SENSOR_PIN (uint8_t) A0 //const uint8_t RAIN_SENSOR_PIN= A0;
+#define LCD_ADDRESS (uint8_t) 0x27
+#define RAIN_SENSOR_PIN (uint8_t) A0 
 #define LCD_SDA_PIN (uint8_t) A4
 #define LCD_SCL_PIN (uint8_t) A5
 
 
-//Hardware Configs
-#define LCD_CHAR_COUNT (int) 16 //const int LCD_CHAR_COUNT= 16;
-#define LCD_ROW_COUNT (int) 2 //const int LCD_ROW_COUNT= 2;
-#define rain_samples (byte) 4 //const byte rain_samples= 4;
-#define RAIN_SENSITIVITY (int) 16 //const byte RAIN_SENSITIVITY= 16;
+//Hardware z
+#define LCD_CHAR_COUNT (int) 16
+#define LCD_ROW_COUNT (int) 2
+#define rain_samples (byte) 4 
+#define RAIN_SENSITIVITY (int) 16
 
 //Environmental Configs
-#define RIVER_DEPTH (int) 100 //const int RIVER_DEPTH= 100; // in centimeters
-// #define RIVER_NAME (String) "Kiko River" 
+#define RIVER_DEPTH (int) 100 
 const String RIVER_NAME = "Kiko River"; 
-#define YELLOW_RAIN_THRESHOLD (byte) 40 //const byte YELLOW_RAIN_THRESHOLD= 40; // Will be changed later.
-#define ORANGE_RAIN_THRESHOLD (byte) 40 //const byte ORANGE_RAIN_THRESHOLD= 40;
-#define RED_RAIN_THRESHOLD (byte) 40 //const byte RED_RAIN_THRESHOLD= 40;
-#define YELLOW_LEVEL_THRESHOLD (int) 4 //const int YELLOW_LEVEL_THRESHOLD= 4; //Threshold for water level is measured by the distance from the ultrasonic sensor to the current water level
-#define ORANGE_LEVEL_THRESHOLD (int) 2.5 //const int ORANGE_LEVEL_THRESHOLD= 2.5;
-#define RED_LEVEL_THRESHOLD (int) 1 //const int RED_LEVEL_THRESHOLD= 1;
+#define YELLOW_RAIN_THRESHOLD (byte) 40 
+#define ORANGE_RAIN_THRESHOLD (byte) 40 
+#define RED_RAIN_THRESHOLD (byte) 40 
+#define YELLOW_LEVEL_THRESHOLD (int) 4 //Threshold for water level is measured by the distance from the ultrasonic sensor to the current water level
+#define ORANGE_LEVEL_THRESHOLD (int) 2.5 
+#define RED_LEVEL_THRESHOLD (int) 1
 typedef struct {
     uint8_t lang;
     String name;
@@ -90,10 +82,18 @@ SDManager sd(SD_CS_PIN);
 void setup(){
     Serial.begin(9600);
     lcd.begin();
-    sim.begin();
+    lcd.printText(String(F("Setting up rainsensor...")));
     rainSensor.begin();
+    lcd.printText(String(F("Setting up ultrasonic sensor...")));
     ultrasonicSensor.begin();
-    // sd.begin();
+    lcd.printText(String(F("Setting up SD card...")));
+    while(!sd.begin()) lcd.printText(String(F("SD card init failed")));
+    lcd.printText(String(F("Setting up SIM card...")));
+    sim.begin();
+    //Serial.println(sim.sendSms("+639369322603", "HELLO WORLD"));
+    while(!sim.getSIMConnectivityStatus()){
+        lcd.printText(String(F("SIM: Establishing connection...")));
+    }
 }
 
 
@@ -102,15 +102,18 @@ void setup(){
 
 void loop(){
     int currentRainLevel = rainSensor.getSampledValue();
-    int currentRiverLevel = ultrasonicSensor.getRiverLevel();
+    int currentRiverLevel = ultrasonicSensor.getDistance();
     
     int currentRainWarning = rainSensor.getWarningLevel(currentRainLevel);
     int currentLevelWarning = ultrasonicSensor.getWarningLevel(currentRiverLevel);
 
+    lcd.clear();
     lcd.printText(String(F("Rain Level")), String(currentRainLevel), 0);
     lcd.printText(String(F("River Level")), String(currentRiverLevel), 1);
 
-    //Serial.println("TEST");
+
+    sd.writeFile("test.txt","HELLO WORLD PLEASE GUMANA KA NA");
+    delay(1000);
 
     // if (currentRainWarning > 0 | currentLevelWarning > 0){
     //     String message1 = String(F("[RIVER WARNING SYSTEM] "));
@@ -147,5 +150,5 @@ void loop(){
     //     }
     // }
 
-    delay(1000);
+    // delay(1000);
 }
