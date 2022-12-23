@@ -13,7 +13,7 @@ class SDManager{
         Vector<String> readFile( String filePath);
         void writeFile(String filePath, String value);
         void writeFile(String filePath, Vector<String> values);
-        void begin();
+        bool begin();
     
     private:
         const int _SC_CS_PIN;

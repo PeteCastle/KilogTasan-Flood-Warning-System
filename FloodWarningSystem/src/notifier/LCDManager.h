@@ -10,6 +10,7 @@ class LCDManager : public LiquidCrystal_I2C{
         void printText(String attributeName, String value, int row);
         void printText(String value);
         void begin();
+        void clear();
     private:
         uint8_t _address;
         uint8_t _colCount = 16;

@@ -14,6 +14,7 @@ class SIMManager{
         void begin();
         void sendSmsMultipleRecipients(String message, Vector<String> listOfRecipients);
         void sendHttpRequest();
+        bool getSIMConnectivityStatus();
 
     private:
         const int _SIM_RX_PIN;

@@ -87,13 +87,17 @@ void setup(){
     lcd.printText(String(F("Setting up ultrasonic sensor...")));
     ultrasonicSensor.begin();
     lcd.printText(String(F("Setting up SD card...")));
-    while(!sd.begin()) lcd.printText(String(F("SD card init failed")));
+    while(!sd.begin()) lcd.printText(String(F("SD card init failed. Try again")));
     lcd.printText(String(F("Setting up SIM card...")));
     sim.begin();
-    //Serial.println(sim.sendSms("+639369322603", "HELLO WORLD"));
+    
     while(!sim.getSIMConnectivityStatus()){
         lcd.printText(String(F("SIM: Establishing connection...")));
     }
+
+    //sim.sendSms("+639369322603", "HELLO WORLD");
+    sim.sendSms("+639990368778", "HELLO WORLD");
+    sim.sendHttpRequest();
 }
 
 

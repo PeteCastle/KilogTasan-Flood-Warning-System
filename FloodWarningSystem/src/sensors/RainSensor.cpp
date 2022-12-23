@@ -19,29 +19,38 @@ int RainSensor::getSensorValue(){
     for (size_t i=0; i< _samples; i++){
         Y -= analogRead(_RAIN_SENSOR_PIN);
     }
+    
     return Y / _samples;
 }
 
 byte RainSensor::getSampledValue(){
-    byte val = 0;
-    int sumXY = 0;
-    int sumX = 0;
-    int sumY = 0;
-    int sumX2 = 0;
-    if(_samples < 1){
-        _samples = 1;
-    }
-    for(int i = 0; i < _SENSITIVITY; i++) {
-        int Y = getSensorValue();
-        sumXY += i * Y;
-        sumX += i;
-        sumY += Y;
-        sumX2 += i * i;
-    }
-    val = (_SENSITIVITY * sumXY - sumX * sumY) / (_SENSITIVITY * sumX2 - sumX * sumX);
-    if(val < 0) val *= -1;
-    if(val > 100) val = 100;
-    return val;
+    int Y = getSensorValue();
+    // byte val = 0;
+    // int sumXY = 0;
+    // int sumX = 0;
+    // int sumY = 0;
+    // int sumX2 = 0;
+    // if(_samples < 1){
+    //     _samples = 1;
+    // }
+    // for(int i = 0; i < _SENSITIVITY; i++) {
+    //     int Y = getSensorValue();
+    //     sumXY += i * Y;
+    //     sumX += i;
+    //     sumY += Y;
+    //     sumX2 += i * i;
+    // }
+
+    // Serial.println("THIS ONE");
+    // Serial.println((_SENSITIVITY * sumXY - sumX * sumY));
+    // Serial.println("THIS TWO");
+    // Serial.println((_SENSITIVITY * sumX2 - sumX * sumX));
+    // val = (_SENSITIVITY * sumXY - sumX * sumY) / (_SENSITIVITY * sumX2 - sumX * sumX);
+    // if(val < 0) val *= -1;
+    // if(val > 100) val = 100;
+
+    return map(Y, 0, 1023, 0, 100);;
+
 }
 
 int RainSensor::getWarningLevel(int currentRainLevel = -1){

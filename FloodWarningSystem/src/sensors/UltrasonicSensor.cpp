@@ -1,4 +1,6 @@
 #include "UltrasonicSensor.h"
+#include <Wire.h>
+
 
 UltrasonicSensor::UltrasonicSensor(const int TRIG_PIN, const int ECHO_PIN, const double RIVER_DEPTH, const int YELLOW_LEVEL_THRESHOLD, const int ORANGE_LEVEL_THRESHOLD, const int RED_LEVEL_THRESHOLD) : 
     _TRIG_PIN(TRIG_PIN), 
@@ -15,20 +17,22 @@ void UltrasonicSensor::begin(){
 }
 int UltrasonicSensor::getDistance(){
     // Note that measurements are always in centimeters (CM)
-    digitalWrite(_TRIG_PIN, LOW);
-    delayMicroseconds(2); 
+        digitalWrite(4, LOW);
+        delayMicroseconds(2); 
+        
+        digitalWrite(4, HIGH);
+        delayMicroseconds(10);
+        digitalWrite(4, LOW);
 
-    digitalWrite(_TRIG_PIN, HIGH);
-  
-    delayMicroseconds(10);
-    digitalWrite(_TRIG_PIN, LOW);
+        long duration = pulseIn(5, HIGH);
+        int distance = duration * 0.034 / 2;
 
-    long duration = pulseIn(_ECHO_PIN, HIGH);
-    int distance = duration * 0.034 / 2;
-
+        // Serial.println(distance);
+        // lcd.print(distance);
     //This is to return zero when the the distane is actually close (<0.10m).  Reads 900.  Max should be 400 or 4m
     // TO DO: The ultrasonic sensor is not yet tested when distance is greater than 4m
-    return (distance >= 900) ?  0 : distance;
+    // return (distance >= 900) ?  0 : distance;
+    return distance;
 }
 
 double UltrasonicSensor::getRiverLevel(int currentDistance){

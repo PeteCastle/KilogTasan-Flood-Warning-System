@@ -8,7 +8,6 @@ LCDManager::LCDManager(uint8_t  address,  uint8_t colCount, uint8_t rowCount):
     
 }
 void LCDManager::begin(){
-    
     LiquidCrystal_I2C::begin();
     LiquidCrystal_I2C::backlight();
     LiquidCrystal_I2C::setCursor(0,0);
@@ -45,4 +44,8 @@ void LCDManager::printText(String value){
         LiquidCrystal_I2C::print(value);
     }
     Serial.println(value);
+}
+
+void LCDManager::clear(){
+    LiquidCrystal_I2C::clear();
 }
