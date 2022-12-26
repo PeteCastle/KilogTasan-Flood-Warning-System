@@ -9,6 +9,7 @@ class LCDManager : public LiquidCrystal_I2C{
         void printText(String attributeName, int value, int row);
         void printText(String attributeName, String value, int row);
         void printText(String value);
+        void printText(String value, int row);
         void begin();
         void clear();
     private:

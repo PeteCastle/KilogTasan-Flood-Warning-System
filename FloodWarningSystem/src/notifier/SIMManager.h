@@ -13,7 +13,7 @@ class SIMManager{
         bool sendSms(String number, String text);
         void begin();
         void sendSmsMultipleRecipients(String message, Vector<String> listOfRecipients);
-        void sendHttpRequest();
+        void sendHttpRequest(String URI);
         bool getSIMConnectivityStatus();
 
     private:

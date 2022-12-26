@@ -1,9 +1,10 @@
-//#include "ConfigManager.h"
 #include "src/notifier/LCDManager.h"
 #include "src/notifier/SIMManager.h"
 #include "src/sensors/UltrasonicSensor.h"
 #include "src/sensors/RainSensor.h"
 #include "src/storage/SDManager.h"
+#include "src/logger/Logger.h"
+#include "src/storage/DateTimeManager.h"
 
 // References
 // https://github.com/arduino/ArduinoCore-avr/blob/master/cores/arduino/Arduino.h
@@ -12,6 +13,7 @@
 // https://github.com/PaulStoffregen/SoftwareSerial/blob/master/SoftwareSerial.cpp
 // https://github.com/cristiansteib/Sim800l/blob/master/Sim800l.cpp
 // https://github.com/arduino-libraries/SD
+// https://github.com/Makuna/Rtc/blob/master/extras/RtcTemperatureTests/RtcTemperatureTests.ino
 
 // TODO :
 // Integration of sim numbers from API to the memory card.
@@ -27,22 +29,27 @@
 
 //CONFIGURATION FILES
 //Digital Pins
-#define SIM_RESET_PIN (int) -1 // Not connected as there's no use yet
+
 #define SIM_TX_PIN (int) 2
 #define SIM_RX_PIN (int) 3
 #define ULTRASONIC_TRIG_PIN (int) 4 
 #define ULTRASONIC_ECHO_PIN (int) 5 
-#define SD_SCK_PIN (int) 13
-#define SD_MISO_PIN (int) 12
-#define SD_MOSI_PIN (int) 11
 #define SD_CS_PIN (int) 10
+#define SD_MOSI_PIN (int) 11
+#define SD_MISO_PIN (int) 12
+#define SD_SCK_PIN (int) 13
+
+//(Currently) Unimplemented Digital pins
+#define SIM_RESET_PIN (int) 6 // Not connected as there's no use yet
+#define RTC_RESET_PIN (int) 7
+#define RTC_DATA_PIN (int) 8
+#define RTC_CLOCK_PIN (int) 9 
 
 //Analog pins
 #define LCD_ADDRESS (uint8_t) 0x27
 #define RAIN_SENSOR_PIN (uint8_t) A0 
 #define LCD_SDA_PIN (uint8_t) A4
 #define LCD_SCL_PIN (uint8_t) A5
-
 
 //Hardware z
 #define LCD_CHAR_COUNT (int) 16
@@ -51,8 +58,10 @@
 #define RAIN_SENSITIVITY (int) 16
 
 //Environmental Configs
-#define RIVER_DEPTH (int) 100 
-const String RIVER_NAME = "Kiko River"; 
+#define RIVER_DEPTH (int) 100
+
+#define RIVER_NAME (String) "Kiko River"
+
 #define YELLOW_RAIN_THRESHOLD (byte) 40 
 #define ORANGE_RAIN_THRESHOLD (byte) 40 
 #define RED_RAIN_THRESHOLD (byte) 40 
@@ -71,33 +80,55 @@ const WarningDictionary levelDict[] = {
 };
 
 //File Configs
-const String RECIPIENTS_FILE = "recipients.txt";
+#define RECIPIENTS_FILE (String) "sendlist.txt"
+#define OEPRATIONS_FILE (String) "log.log"
+#define MEASUREMENTS_FILE (String) "measures.csv"
+
+/// API Confis
+#define CURRENT_DATE_TIME (String) "https://arduinofloodwarningserver.azurewebsites.net/api/currentDate"
 
 LCDManager lcd(LCD_ADDRESS, LCD_CHAR_COUNT, LCD_ROW_COUNT);
 SIMManager sim(SIM_RX_PIN, SIM_TX_PIN, SIM_RESET_PIN);
 RainSensor rainSensor(RAIN_SENSOR_PIN, rain_samples, RAIN_SENSITIVITY, YELLOW_RAIN_THRESHOLD, ORANGE_RAIN_THRESHOLD, RED_RAIN_THRESHOLD);
 UltrasonicSensor ultrasonicSensor(ULTRASONIC_TRIG_PIN, ULTRASONIC_ECHO_PIN, RIVER_DEPTH, YELLOW_LEVEL_THRESHOLD, ORANGE_LEVEL_THRESHOLD, RED_LEVEL_THRESHOLD);
 SDManager sd(SD_CS_PIN);
+Logger logger(&lcd, &sd, RECIPIENTS_FILE, OEPRATIONS_FILE, MEASUREMENTS_FILE);
+DateTimeManager datetime(RTC_DATA_PIN, RTC_CLOCK_PIN, RTC_RESET_PIN);
+
+
 
 void setup(){
+    logger.standardLog(String(F("Starting Flood Warning System")));
+    
     Serial.begin(9600);
     lcd.begin();
-    lcd.printText(String(F("Setting up rainsensor...")));
-    rainSensor.begin();
-    lcd.printText(String(F("Setting up ultrasonic sensor...")));
-    ultrasonicSensor.begin();
-    lcd.printText(String(F("Setting up SD card...")));
+
+    lcd.printText(String(F("Setting up SD card")));
     while(!sd.begin()) lcd.printText(String(F("SD card init failed. Try again")));
-    lcd.printText(String(F("Setting up SIM card...")));
-    sim.begin();
+
+
+    //lcd.printText(String(F("Setting up rainsensor...")));
+    rainSensor.begin();
+    logger.standardLog(String(F("Setting up ultrasonic sensor")));
+    ultrasonicSensor.begin();
     
-    while(!sim.getSIMConnectivityStatus()){
-        lcd.printText(String(F("SIM: Establishing connection...")));
-    }
+    logger.standardLog(String(F("Setting up SIM card...")));
+    sim.begin();
+
+    logger.standardLog(String(F("Setting up date and time modules..")));
+    datetime.begin();
+    
+    // while(!sim.getSIMConnectivityStatus()){
+    //     lcd.printText(String(F("SIM: Establishing connection...")));
+    // }
+
+
 
     //sim.sendSms("+639369322603", "HELLO WORLD");
-    sim.sendSms("+639990368778", "HELLO WORLD");
-    sim.sendHttpRequest();
+    //sim.sendSms("+639990368778", "HELLO WORLD");
+
+
+    //sim.sendHttpRequest(CURRENT_DATE_TIME);
 }
 
 
@@ -111,12 +142,8 @@ void loop(){
     int currentRainWarning = rainSensor.getWarningLevel(currentRainLevel);
     int currentLevelWarning = ultrasonicSensor.getWarningLevel(currentRiverLevel);
 
-    lcd.clear();
-    lcd.printText(String(F("Rain Level")), String(currentRainLevel), 0);
-    lcd.printText(String(F("River Level")), String(currentRiverLevel), 1);
-
-
-    sd.writeFile("test.txt","HELLO WORLD PLEASE GUMANA KA NA");
+    logger.measureLog(currentRainLevel, currentRiverLevel);
+   
     delay(1000);
 
     // if (currentRainWarning > 0 | currentLevelWarning > 0){
@@ -154,5 +181,4 @@ void loop(){
     //     }
     // }
 
-    // delay(1000);
 }

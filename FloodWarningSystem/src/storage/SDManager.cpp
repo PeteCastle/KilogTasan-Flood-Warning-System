@@ -22,25 +22,27 @@ void SDManager::writeFile(const String filePath, String value){
     if(dataFile){
         dataFile.println(value);
         dataFile.close();
-        Serial.println(String(F("The following contents were added to the file ")) + filePath + ": \n" + value);
+        Serial.print(F("A text was added to the file:  "));
+        Serial.println(filePath);
     }
     else{
-        Serial.println(String(F("An error has occured while opening file: ")) + filePath);
+        Serial.print(F("An error has occured while opening file: "));
+        Serial.println(filePath);
     }
 }
-void SDManager::writeFile(String filePath, Vector<String> values){
-    File dataFile = SD.open(filePath, FILE_WRITE);
+// void SDManager::writeFile(String filePath, Vector<String> values){
+//     File dataFile = SD.open(filePath, FILE_WRITE);
 
-    if(dataFile){
-        for( String value : values) dataFile.println(value + "\n");
+//     if(dataFile){
+//         for( String value : values) dataFile.println(value + "\n");
         
-        Serial.println(String(F("The following contents were added to the file ")) + filePath);
-        dataFile.close();
-    }
-    else{
-        Serial.println(String(F("An error has occured while opening file: ")) + filePath);
-    }
-}
+//         Serial.println(String(F("The following contents were added to the file ")) + filePath);
+//         dataFile.close();
+//     }
+//     else{
+//         Serial.println(String(F("An error has occured while opening file: ")) + filePath);
+//     }
+// }
 
 Vector<String> SDManager::readFile(String filePath){
     File dataFile = SD.open(filePath);

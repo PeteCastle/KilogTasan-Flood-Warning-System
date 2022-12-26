@@ -9,7 +9,7 @@ SIMManager::SIMManager(const int SIM_RX_PIN, const int SIM_TX_PIN, const int SIM
     }
 
 void SIMManager::begin(){
-    //_buffer.reserve(512);
+    _buffer.reserve(128);
     SIM.begin(9600);
 }
 
@@ -17,7 +17,7 @@ String SIMManager::_readSerial(){
     _timeout=0;
     
     while(!SIM.available() && _timeout<12000) {
-        Serial.println("not available");
+        //Serial.println("not available");
         delay(13);
         _timeout++;
     }
@@ -80,34 +80,80 @@ bool SIMManager::getSIMConnectivityStatus(){
 //https://m2msupport.net/m2msupport/globe-telecomphilippines-set-the-apn-to-internet-globe-com-ph/
 //https://stackoverflow.com/questions/63187583/arduino-sim900-atsapbr-1-1-operation-not-allowed
 
-void SIMManager::sendHttpRequest(){
-    SIM.print(F("AT+SAPBR=3,1,\"Contype\",\"GPRS\"\r"));
-    _buffer = _readSerial();
+void SIMManager::sendHttpRequest(String URI){
+    // SIM.print(F("AT+SAPBR=3,1,\"Contype\",\"GPRS\"\r"));
+    // _buffer = _readSerial();
+    
     SIM.print(F("AT+SAPBR=3,1,\"APN\",\"internet.globe.com.ph\"\r"));
     _buffer = _readSerial();
-    SIM.print(F("AT+SAPBR=1,1\r"));
-    delay(15000);  
+
+    // SIM.print(F("AT+CGDCONT= 1,\"IP\",\"http.globe.com.ph\",\"0.0.0.0\",0,0"));
+    // _buffer = _readSerial();
+
+    // SIM.print(F("AT+CSTT=\"http.globe.com.ph\",\"\",\"\"\r"));
+    // _buffer = _readSerial();
+    // SIM.print(_buffer);
+
+    // SIM.print(F("AT+SAPBR=1,1\r"));
+    // delay(5000);  
+    // _buffer = _readSerial();
+    // Serial.print("THS ONE");
+    // Serial.println(_buffer.substring(9,12));
+    
+//     AT+SAPBR=2,1
+
+// +SAPBR: 1,1,"100.94.95.53"
+
+// OK
+    do{
+        Serial.println(String(F("Establishing GPRS connection")));
+        SIM.print(F("AT+SAPBR=1,1\r"));
+    } while(_readSerial().substring(9,12) != F("1,1"));
+    Serial.println(String(F("GPRS connection established")));
+
+    SIM.print(F("AT+CMEE=2\r"));
     _buffer = _readSerial();
+    SIM.print(_buffer);
 
     SIM.print(F("AT+SAPBR=2,1\r"));
-    Serial.println(_readSerial());
+    _buffer = _readSerial();
+    SIM.print(_buffer);
 
     SIM.print(F("AT+HTTPINIT\r"));
     _buffer = _readSerial();
+    SIM.print(_buffer);
+
     SIM.print(F("AT+HTTPPARA=\"CID\",1\r"));
     _buffer = _readSerial();
-    SIM.print(F("AT+HTTPPARA=\"URL\",\"http://worldtimeapi.org/api/timezone/Asia/Manila\"\r"));
+    SIM.print(_buffer);
+
+    SIM.print(F("AT+HTTPPARA=\"URL\",\"http://google.com\"\r"));
+    // SIM.print(F("AT+HTTPPARA=\"URL\",\""));
+    // Serial.println(URI);
+    // SIM.print(URI);
+    // SIM.print(F("\"\r"));
     _buffer = _readSerial();
+    SIM.print(_buffer);
+
     SIM.print(F("AT+HTTPPARA=\"CONTENT\",\"application/json\"\r"));
     _buffer = _readSerial();
+
+    // SIM.print(F("AT+SAPBR=3,1"));
+    // _buffer = _readSerial();
+    // Serial.println(_buffer);
+
+
     SIM.print(F("AT+HTTPACTION=0\r"));
-    delay(6000);
+    delay(10000);
     _buffer = _readSerial();
     SIM.print(F("AT+HTTPREAD\r"));
     Serial.println("HTTP READ VALUE:");
     Serial.println(_readSerial());
 
     SIM.print(F("AT+HTTPTERM"));
+    _buffer = _readSerial();
+
+    SIM.print(F("AT+SAPBR=0,1\r"));
     _buffer = _readSerial();
 
     Serial.println("end of method:");

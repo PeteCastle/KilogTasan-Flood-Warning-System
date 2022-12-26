@@ -21,17 +21,23 @@ void LCDManager::printText(String attributeName, int value, int row){
     LiquidCrystal_I2C::print(attributeName + ":");
     LiquidCrystal_I2C::setCursor(attributeName.length()+1, row);
     LiquidCrystal_I2C::print(value);
-    Serial.println(attributeName + ": ");
-    Serial.print(value);
+    // Serial.println(attributeName + ": ");
+    // Serial.print(value);
 }
 void LCDManager::printText(String attributeName, String value, int row){
     LiquidCrystal_I2C::setCursor(0,row);
     LiquidCrystal_I2C::print(attributeName + ":");
     LiquidCrystal_I2C::setCursor(attributeName.length()+1, row);
     LiquidCrystal_I2C::print(value);
-    Serial.println(attributeName + ": " + value);
-    Serial.print(value);
+    // Serial.println(attributeName + ": " + value);
+    // Serial.print(value);
 }
+
+void LCDManager::printText(String value, int row){
+    LiquidCrystal_I2C::setCursor(0,row);
+    LiquidCrystal_I2C::print(value);
+}
+
 void LCDManager::printText(String value){
     if(value.length() > 16){
         LiquidCrystal_I2C::setCursor(0,0);
@@ -43,7 +49,7 @@ void LCDManager::printText(String value){
         LiquidCrystal_I2C::setCursor(0,0);
         LiquidCrystal_I2C::print(value);
     }
-    Serial.println(value);
+    // Serial.println(value);
 }
 
 void LCDManager::clear(){
