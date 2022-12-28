@@ -152,41 +152,6 @@ void setup(){
     //sim.sendHttpRequest(CURRENT_DATE_TIME);
 }
 
-
-// CORE WARNING SYSTEM
-// SAVE TO DATABSE
-
-// const char* getAlertLevelName(int level){
-//     char *str;
-//     switch(level){
-//         case 0:
-//             str = (char*)malloc(sizeof(ALERT_LEVEL_0));
-//             return ALERT_LEVEL_0;
-//             break;
-//         case 1:
-//             str = (char*)malloc(sizeof(ALERT_LEVEL_1));
-//             return ALERT_LEVEL_1;
-//             break;
-//         case 2:
-//             str = (char*)malloc(sizeof(ALERT_LEVEL_2));
-//             return ALERT_LEVEL_2;
-//             break;
-//         case 3:
-//             str = (char*)malloc(sizeof(ALERT_LEVEL_3));
-//             return ALERT_LEVEL_3;
-//             break;
-//         default:
-//             return nullptr;
-//     }
-//     // switch(level){
-//     //     case 0: return String(F("No Alert Level"));  break;
-//     //     case 1: return String(F("Yellow Alert Level")); break;
-//     //     case 2: return String(F("Orange Alert Level")); break;
-//     //     case 3: return String(F("Red Alert Level")); break;  
-//     //     default: break;
-//     // }
-// }
-
 //FOR DEBUGGING ONLY
 extern unsigned int __heap_start;
 extern void *__brkval;
@@ -234,36 +199,6 @@ void loop(){
     Serial.println(freeMemory());
     logger.measureLog(currentTime, currentRainLevel, currentRiverLevel);
 
-
-    // String standardMessage1 = String(F("[RIVER WARNING SYSTEM] "));
-    // String standardMessage2 = String(F("[RAIN WARNING SYSTEM] "));
-
-    // String alertLevelRainOnly = String(F(" ngayon ang pag-ulan malapit sa ."));
-    // String alertLevelFloodOnly = String(F(" ngayon ang kalagayan sa ."));
-    // String alertLevelBoth = String(F(" ngayon ang pag-ulan at ang kalagayan sa ")); //Must choose whoever is higher in the two
-
-    // String rainWarning = String(F("Asahan ang pag-ulan sa loob ng ilang oras."));
-    // String floodWarning = String(F("Mag-ingat sa posibilidad ng pagbaha sa loob ng ilang oras."));
-    // String bothWarning = String(F("Mag-ingat sa posibilidad ng pagbaha at pagulan sa loob ng ilang oras."));
-
-    // String evacuationOptional = String(F("Inaanyayahan ang lahat na lumikas sa pinakamalapit na evacuation center."));
-    // String evacuationMandatory =String( F("Inuutusan ang lahat na lumikas sa pinakamalapit na evacuation center."));
-
-    // char standardMessage1[] PROGMEM = "[RIVER WARNING SYSTEM] ";
-    // char standardMessage2[] PROGMEM = "[RAIN WARNING SYSTEM] ";
-
-    // char alertLevelRainOnly[] PROGMEM = " ngayon ang pag-ulan malapit sa .";
-    // char alertLevelFloodOnly[] PROGMEM = " ngayon ang kalagayan sa .";
-    // char alertLevelBoth[] PROGMEM = " ngayon ang pag-ulan at ang kalagayan sa "; //Must choose whoever is higher in the two
-
-    // char rainWarning[] PROGMEM = "Asahan ang pag-ulan sa loob ng ilang oras.";
-    // char floodWarning[] PROGMEM = "Mag-ingat sa posibilidad ng pagbaha sa loob ng ilang oras.";
-    // char bothWarning[] PROGMEM = "Mag-ingat sa posibilidad ng pagbaha at pagulan sa loob ng ilang oras.";
-
-    // char evacuationOptional[] PROGMEM = "Inaanyayahan ang lahat na lumikas sa pinakamalapit na evacuation center.";
-    // char evacuationMandatory[] PROGMEM = "Inuutusan ang lahat na lumikas sa pinakamalapit na evacuation center.";
-
-
     if (currentRainWarning > 0 | currentLevelWarning > 0){
         Serial.print(F("FREE MEMORY: "));
         Serial.println(freeMemory());
@@ -285,16 +220,9 @@ void loop(){
         //If river level only
         else if(currentLevelWarning > 0 && currentRainWarning == 0){
             Serial.println(F("2ND MESSAGE:"));
-
-
-            // strcpy_P(buffer, standardMessage1);
             warningMessage = strcat_P(warningMessage, standardMessage1);
-            // warningMessage+=standardMessage1;
-            
             warningMessage = strcat(warningMessage, currentTime.c_str());
-            // warningMessage+=currentTime;
 
-            // const char* buffer = getAlertLevelName(currentRainWarning);
 
             // switch(currentLevelWarning){
             //     case 0: warningMessage = strcat_P(warningMessage,ALERT_LEVEL_0); break;
@@ -303,29 +231,8 @@ void loop(){
             //     case 3: warningMessage = strcat_P(warningMessage,ALERT_LEVEL_3); break;
             //     default: break;
             // }
-
-            // switch(currentRainWarning){
-            //     case 0: strcat_P(warningMessage,ALERT_LEVEL_0); break;
-            //     case 1: strcat_P(warningMessage,ALERT_LEVEL_1); break;
-            //     case 2: strcat_P(warningMessage,ALERT_LEVEL_2); break;
-            //     case 3: strcat_P(warningMessage,ALERT_LEVEL_3); break;
-            // }
-
-            // warningMessage = strcat(warningMessage,buffer) ;
-            // free(buffer);
-            //getAlertLevelName(currentRainWarning).toCharArray(buffer, getAlertLevelName(currentRainWarning).length());
-
-
-            //warningMessage = strcat(warningMessage,getAlertLevelName(currentRainWarning).c_str()) ;
-            // warningMessage+=getAlertLevelName(currentRainWarning);
-
             warningMessage = strcat_P(warningMessage, alertLevelFloodOnly);
-            // warningMessage+=alertLevelFloodOnly;
-
             warningMessage = strcat_P(warningMessage, RIVER_NAME);
-            // warningMessage+=RIVER_NAME;
-
-
             switch(currentLevelWarning){
                 case 1: warningMessage = strcat_P(warningMessage, floodWarning); break;
                 case 2: warningMessage = strcat_P(warningMessage, evacuationOptional); break;
