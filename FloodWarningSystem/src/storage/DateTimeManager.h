@@ -15,6 +15,9 @@ class DateTimeManager{
         DateTimeManager(int DATA_PIN, int CLOCK_PIN, int RESET_PIN);
         void begin();
         void updateDateTime();
+        String getCurrentTime();
+        bool withinInterval(RtcDateTime previous, int threshold);
+
     private:
         ThreeWire datetimeWire;
         RtcDS1302<ThreeWire> Rtc;

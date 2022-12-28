@@ -7,7 +7,7 @@ class Logger{
     public: 
         Logger(LCDManager *lcd, SDManager *sd, String RECIPIENTS_FILE, String OEPRATIONS_FILE, String MEASUREMENTS_FILE);
         void standardLog(String log);
-        void measureLog(int rainLevel, int riverLevel);
+        void measureLog(String time, int rainLevel, int riverLevel);
     private:
         LCDManager *lcd;
         SDManager *sd;

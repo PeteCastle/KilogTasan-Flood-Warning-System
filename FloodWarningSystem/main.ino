@@ -5,8 +5,10 @@
 #include "src/storage/SDManager.h"
 #include "src/logger/Logger.h"
 #include "src/storage/DateTimeManager.h"
+#include <avr/pgmspace.h>
 
 // References
+
 // https://github.com/arduino/ArduinoCore-avr/blob/master/cores/arduino/Arduino.h
 // https://github.com/gamegine/HCSR04-ultrasonic-sensor-lib/blob/master/src/HCSR04.h
 // https://github.com/naoto64/Arduino-RainSense/blob/master/src/RainSense.h
@@ -51,7 +53,7 @@
 #define LCD_SDA_PIN (uint8_t) A4
 #define LCD_SCL_PIN (uint8_t) A5
 
-//Hardware z
+//Hardware Configs
 #define LCD_CHAR_COUNT (int) 16
 #define LCD_ROW_COUNT (int) 2
 #define rain_samples (byte) 4 
@@ -59,43 +61,56 @@
 
 //Environmental Configs
 #define RIVER_DEPTH (int) 100
+//#define RIVER_NAME (String) "Kiko River"
+char const RIVER_NAME[] PROGMEM = "Kiko River";
+#define YELLOW_RAIN_THRESHOLD (byte) 80 
+#define ORANGE_RAIN_THRESHOLD (byte) 90 
+#define RED_RAIN_THRESHOLD (byte) 100 
+#define YELLOW_LEVEL_THRESHOLD (int) 300 //Threshold for water level is measured by the distance from the ultrasonic sensor to the current water level
+#define ORANGE_LEVEL_THRESHOLD (int) 200
+#define RED_LEVEL_THRESHOLD (int) 100
 
-#define RIVER_NAME (String) "Kiko River"
-
-#define YELLOW_RAIN_THRESHOLD (byte) 40 
-#define ORANGE_RAIN_THRESHOLD (byte) 40 
-#define RED_RAIN_THRESHOLD (byte) 40 
-#define YELLOW_LEVEL_THRESHOLD (int) 4 //Threshold for water level is measured by the distance from the ultrasonic sensor to the current water level
-#define ORANGE_LEVEL_THRESHOLD (int) 2.5 
-#define RED_LEVEL_THRESHOLD (int) 1
-typedef struct {
-    uint8_t lang;
-    String name;
-} WarningDictionary;
-const WarningDictionary levelDict[] = {
-    {0, String("None")},
-    {1, String("Yellow")},
-    {2, String("Orange")},
-    {3, String("Red")}
-};
 
 //File Configs
 #define RECIPIENTS_FILE (String) "sendlist.txt"
-#define OEPRATIONS_FILE (String) "log.log"
+#define OPERATIONS_FILE (String) "log.log"
 #define MEASUREMENTS_FILE (String) "measures.csv"
+#define LAST_MESSAGE_FILE_DATE (String) "lastmsgd.txt"
+#define LAST_MESSAGE_FILE_TIME (String) "lastmsgt.txt"
 
-/// API Confis
-#define CURRENT_DATE_TIME (String) "https://arduinofloodwarningserver.azurewebsites.net/api/currentDate"
+// Default Configs
+char const DEFAULT_DATE[] PROGMEM  = "Jan 10 2010";
+char const DEFAULT_TIME[] PROGMEM = "10:00:00";
+
+char const ALERT_LEVEL_0[] PROGMEM = "No Alert Level";
+char const ALERT_LEVEL_1[] PROGMEM = "Yellow Alert Level";
+char const ALERT_LEVEL_2[] PROGMEM = "Orange Alert Level";
+char const ALERT_LEVEL_3[] PROGMEM = "Red Alert Level";
+
+char const standardMessage1[] PROGMEM = "[RIVER WARNING SYSTEM] ";
+char const standardMessage2[] PROGMEM = "[RAIN WARNING SYSTEM] ";
+
+char const alertLevelRainOnly[] PROGMEM = " ngayon ang pag-ulan malapit sa .";
+char const alertLevelFloodOnly[] PROGMEM = " ngayon ang kalagayan sa .";
+char const alertLevelBoth[] PROGMEM = " ngayon ang pag-ulan at ang kalagayan sa "; //Must choose whoever is higher in the two
+
+char const rainWarning[] PROGMEM = "Asahan ang pag-ulan sa loob ng ilang oras.";
+char const floodWarning[] PROGMEM = "Mag-ingat sa posibilidad ng pagbaha sa loob ng ilang oras.";
+char const bothWarning[] PROGMEM = "Mag-ingat sa posibilidad ng pagbaha at pagulan sa loob ng ilang oras.";
+
+char const evacuationOptional[] PROGMEM = "Inaanyayahan ang lahat na lumikas sa pinakamalapit na evacuation center.";
+char const evacuationMandatory[] PROGMEM = "Inuutusan ang lahat na lumikas sa pinakamalapit na evacuation center.";
+
+
 
 LCDManager lcd(LCD_ADDRESS, LCD_CHAR_COUNT, LCD_ROW_COUNT);
 SIMManager sim(SIM_RX_PIN, SIM_TX_PIN, SIM_RESET_PIN);
 RainSensor rainSensor(RAIN_SENSOR_PIN, rain_samples, RAIN_SENSITIVITY, YELLOW_RAIN_THRESHOLD, ORANGE_RAIN_THRESHOLD, RED_RAIN_THRESHOLD);
 UltrasonicSensor ultrasonicSensor(ULTRASONIC_TRIG_PIN, ULTRASONIC_ECHO_PIN, RIVER_DEPTH, YELLOW_LEVEL_THRESHOLD, ORANGE_LEVEL_THRESHOLD, RED_LEVEL_THRESHOLD);
 SDManager sd(SD_CS_PIN);
-Logger logger(&lcd, &sd, RECIPIENTS_FILE, OEPRATIONS_FILE, MEASUREMENTS_FILE);
+Logger logger(&lcd, &sd, RECIPIENTS_FILE, OPERATIONS_FILE, MEASUREMENTS_FILE);
 DateTimeManager datetime(RTC_DATA_PIN, RTC_CLOCK_PIN, RTC_RESET_PIN);
-
-
+RtcDateTime timeSinceLastWarning(DEFAULT_DATE,DEFAULT_TIME); //Initialize temporary value
 
 void setup(){
     logger.standardLog(String(F("Starting Flood Warning System")));
@@ -107,8 +122,9 @@ void setup(){
     while(!sd.begin()) lcd.printText(String(F("SD card init failed. Try again")));
 
 
-    //lcd.printText(String(F("Setting up rainsensor...")));
+    lcd.printText(String(F("Setting up rainsensor...")));
     rainSensor.begin();
+
     logger.standardLog(String(F("Setting up ultrasonic sensor")));
     ultrasonicSensor.begin();
     
@@ -117,7 +133,12 @@ void setup(){
 
     logger.standardLog(String(F("Setting up date and time modules..")));
     datetime.begin();
-    
+
+
+    String lastMsgDate = sd.readFile(LAST_MESSAGE_FILE_DATE);
+    String lastMsgTime = sd.readFile(LAST_MESSAGE_FILE_TIME);
+    timeSinceLastWarning = RtcDateTime((char*) lastMsgDate.c_str(),(char*) lastMsgTime.c_str());
+
     // while(!sim.getSIMConnectivityStatus()){
     //     lcd.printText(String(F("SIM: Establishing connection...")));
     // }
@@ -135,17 +156,209 @@ void setup(){
 // CORE WARNING SYSTEM
 // SAVE TO DATABSE
 
+// const char* getAlertLevelName(int level){
+//     char *str;
+//     switch(level){
+//         case 0:
+//             str = (char*)malloc(sizeof(ALERT_LEVEL_0));
+//             return ALERT_LEVEL_0;
+//             break;
+//         case 1:
+//             str = (char*)malloc(sizeof(ALERT_LEVEL_1));
+//             return ALERT_LEVEL_1;
+//             break;
+//         case 2:
+//             str = (char*)malloc(sizeof(ALERT_LEVEL_2));
+//             return ALERT_LEVEL_2;
+//             break;
+//         case 3:
+//             str = (char*)malloc(sizeof(ALERT_LEVEL_3));
+//             return ALERT_LEVEL_3;
+//             break;
+//         default:
+//             return nullptr;
+//     }
+//     // switch(level){
+//     //     case 0: return String(F("No Alert Level"));  break;
+//     //     case 1: return String(F("Yellow Alert Level")); break;
+//     //     case 2: return String(F("Orange Alert Level")); break;
+//     //     case 3: return String(F("Red Alert Level")); break;  
+//     //     default: break;
+//     // }
+// }
+
+//FOR DEBUGGING ONLY
+extern unsigned int __heap_start;
+extern void *__brkval;
+struct __freelist {
+  size_t sz;
+  struct __freelist *nx;
+};
+extern struct __freelist *__flp;
+int freeListSize() {
+  struct __freelist* current;
+  int total = 0;
+  for (current = __flp; current; current = current->nx) {
+    total += 2; /* Add two bytes for the memory block's header  */
+    total += (int) current->sz;
+  }
+  return total;
+}
+
+int freeMemory() {
+  int free_memory;
+  if ((int)__brkval == 0) {
+    free_memory = ((int)&free_memory) - ((int)&__heap_start);
+  } else {
+    free_memory = ((int)&free_memory) - ((int)__brkval);
+    free_memory += freeListSize();
+  }
+  return free_memory;
+}
+
+
+
+
 void loop(){
+    Serial.println(F("START OF LOOP"));
+    String currentTime = datetime.getCurrentTime();
+ 
+
     int currentRainLevel = rainSensor.getSampledValue();
     int currentRiverLevel = ultrasonicSensor.getDistance();
     
     int currentRainWarning = rainSensor.getWarningLevel(currentRainLevel);
     int currentLevelWarning = ultrasonicSensor.getWarningLevel(currentRiverLevel);
 
-    logger.measureLog(currentRainLevel, currentRiverLevel);
-   
-    delay(1000);
+    Serial.print(F("FREE MEMORY: "));
+    Serial.println(freeMemory());
+    logger.measureLog(currentTime, currentRainLevel, currentRiverLevel);
 
+
+    // String standardMessage1 = String(F("[RIVER WARNING SYSTEM] "));
+    // String standardMessage2 = String(F("[RAIN WARNING SYSTEM] "));
+
+    // String alertLevelRainOnly = String(F(" ngayon ang pag-ulan malapit sa ."));
+    // String alertLevelFloodOnly = String(F(" ngayon ang kalagayan sa ."));
+    // String alertLevelBoth = String(F(" ngayon ang pag-ulan at ang kalagayan sa ")); //Must choose whoever is higher in the two
+
+    // String rainWarning = String(F("Asahan ang pag-ulan sa loob ng ilang oras."));
+    // String floodWarning = String(F("Mag-ingat sa posibilidad ng pagbaha sa loob ng ilang oras."));
+    // String bothWarning = String(F("Mag-ingat sa posibilidad ng pagbaha at pagulan sa loob ng ilang oras."));
+
+    // String evacuationOptional = String(F("Inaanyayahan ang lahat na lumikas sa pinakamalapit na evacuation center."));
+    // String evacuationMandatory =String( F("Inuutusan ang lahat na lumikas sa pinakamalapit na evacuation center."));
+
+    // char standardMessage1[] PROGMEM = "[RIVER WARNING SYSTEM] ";
+    // char standardMessage2[] PROGMEM = "[RAIN WARNING SYSTEM] ";
+
+    // char alertLevelRainOnly[] PROGMEM = " ngayon ang pag-ulan malapit sa .";
+    // char alertLevelFloodOnly[] PROGMEM = " ngayon ang kalagayan sa .";
+    // char alertLevelBoth[] PROGMEM = " ngayon ang pag-ulan at ang kalagayan sa "; //Must choose whoever is higher in the two
+
+    // char rainWarning[] PROGMEM = "Asahan ang pag-ulan sa loob ng ilang oras.";
+    // char floodWarning[] PROGMEM = "Mag-ingat sa posibilidad ng pagbaha sa loob ng ilang oras.";
+    // char bothWarning[] PROGMEM = "Mag-ingat sa posibilidad ng pagbaha at pagulan sa loob ng ilang oras.";
+
+    // char evacuationOptional[] PROGMEM = "Inaanyayahan ang lahat na lumikas sa pinakamalapit na evacuation center.";
+    // char evacuationMandatory[] PROGMEM = "Inuutusan ang lahat na lumikas sa pinakamalapit na evacuation center.";
+
+
+    if (currentRainWarning > 0 | currentLevelWarning > 0){
+        Serial.print(F("FREE MEMORY: "));
+        Serial.println(freeMemory());
+        char *warningMessage;
+        //String warningMessage;
+        //char *buffer;
+        warningMessage[0] = '\0';
+
+        //If rain only
+        if(currentRainWarning > 0 && currentLevelWarning == 0){ 
+            Serial.println(F("1ST MESSAGE:"));
+            // warningMessage+=standardMessage2;
+            // warningMessage+=currentTime;
+            // warningMessage+=getAlertLevelName(currentRainWarning);
+            // warningMessage+=alertLevelRainOnly;
+            // warningMessage+=RIVER_NAME;
+            // warningMessage+=rainWarning;
+        }
+        //If river level only
+        else if(currentLevelWarning > 0 && currentRainWarning == 0){
+            Serial.println(F("2ND MESSAGE:"));
+
+
+            // strcpy_P(buffer, standardMessage1);
+            warningMessage = strcat_P(warningMessage, standardMessage1);
+            // warningMessage+=standardMessage1;
+            
+            warningMessage = strcat(warningMessage, currentTime.c_str());
+            // warningMessage+=currentTime;
+
+            // const char* buffer = getAlertLevelName(currentRainWarning);
+
+            // switch(currentLevelWarning){
+            //     case 0: warningMessage = strcat_P(warningMessage,ALERT_LEVEL_0); break;
+            //     case 1: warningMessage = strcat_P(warningMessage,ALERT_LEVEL_1); break;
+            //     case 2: warningMessage = strcat_P(warningMessage,ALERT_LEVEL_2); break;
+            //     case 3: warningMessage = strcat_P(warningMessage,ALERT_LEVEL_3); break;
+            //     default: break;
+            // }
+
+            // switch(currentRainWarning){
+            //     case 0: strcat_P(warningMessage,ALERT_LEVEL_0); break;
+            //     case 1: strcat_P(warningMessage,ALERT_LEVEL_1); break;
+            //     case 2: strcat_P(warningMessage,ALERT_LEVEL_2); break;
+            //     case 3: strcat_P(warningMessage,ALERT_LEVEL_3); break;
+            // }
+
+            // warningMessage = strcat(warningMessage,buffer) ;
+            // free(buffer);
+            //getAlertLevelName(currentRainWarning).toCharArray(buffer, getAlertLevelName(currentRainWarning).length());
+
+
+            //warningMessage = strcat(warningMessage,getAlertLevelName(currentRainWarning).c_str()) ;
+            // warningMessage+=getAlertLevelName(currentRainWarning);
+
+            warningMessage = strcat_P(warningMessage, alertLevelFloodOnly);
+            // warningMessage+=alertLevelFloodOnly;
+
+            warningMessage = strcat_P(warningMessage, RIVER_NAME);
+            // warningMessage+=RIVER_NAME;
+
+
+            switch(currentLevelWarning){
+                case 1: warningMessage = strcat_P(warningMessage, floodWarning); break;
+                case 2: warningMessage = strcat_P(warningMessage, evacuationOptional); break;
+                case 3: warningMessage = strcat_P(warningMessage, evacuationMandatory); break;
+                default: break;
+            }
+        }
+        // If both
+        else{
+            // Serial.println(F("3RD MESSAGE:"));
+            // int higherLevel = currentRainWarning>=currentLevelWarning ? currentRainWarning : currentLevelWarning;
+            // warningMessage+=standardMessage1;
+            // warningMessage+=currentTime;
+            // warningMessage+=getAlertLevelName(higherLevel);
+            // warningMessage+=alertLevelBoth;
+            // warningMessage+=RIVER_NAME;
+            // switch(currentLevelWarning){
+            //     case 1: warningMessage+=bothWarning; break;
+            //     case 2: warningMessage+=evacuationOptional; break;
+            //     case 3: warningMessage+=evacuationMandatory; break;
+            //     default: break;
+            // }
+        }
+        Serial.println(F("WARNING MESSAGE:"));
+        Serial.println(warningMessage);
+        Serial.println(F("WARNING MESSAGE END"));
+    }
+    delay(1000);
+}
+
+
+
+ // }
     // if (currentRainWarning > 0 | currentLevelWarning > 0){
     //     String message1 = String(F("[RIVER WARNING SYSTEM] "));
     //     String message2 = String(F("DATETIMEHERE"));
@@ -180,5 +393,3 @@ void loop(){
     //         sim.sendSmsMultipleRecipients(message, sd.readFile(RECIPIENTS_FILE));
     //     }
     // }
-
-}

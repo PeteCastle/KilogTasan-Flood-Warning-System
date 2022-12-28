@@ -53,17 +53,23 @@ double UltrasonicSensor::getRiverLevel(int currentDistance){
 
 int UltrasonicSensor::getWarningLevel(int currentDistance){
     currentDistance==-1 ? currentDistance = getDistance() : false;
-
+    // Serial.println("CURRENT DISTANCE");
+    // Serial.println(currentDistance);
+    
     if (currentDistance <= _RED_LEVEL_THRESHOLD ){
+        // Serial.println("red OF THE ABOVE");
         return 3;
     }
     else if (currentDistance <= _ORANGE_LEVEL_THRESHOLD && currentDistance > _RED_LEVEL_THRESHOLD){
+        // Serial.println("orange OF THE ABOVE");
         return 2;
     }
     else if (currentDistance <= _YELLOW_LEVEL_THRESHOLD && currentDistance > _ORANGE_LEVEL_THRESHOLD){
+        // Serial.println("yellow OF THE ABOVE");
         return 1;
     }
     else if (currentDistance >_YELLOW_LEVEL_THRESHOLD){
+        // Serial.println("NONE OF THE ABOVE");
         return 0;
     }
     else{

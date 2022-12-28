@@ -14,16 +14,16 @@ void Logger::standardLog(String log){
     lcd->printText(log);
 }
 
-void Logger::measureLog(int rainLevel, int riverLevel){  // The string should already be in CSV
-    Serial.println("TIMEHERE\t" + String(rainLevel) + "\t" + String(riverLevel));
+void Logger::measureLog(String time, int rainLevel, int riverLevel){  // The string should already be in CSV
+    Serial.println(time + "\t" + String(rainLevel) + "\t" + String(riverLevel));
 
-    sd->writeFile(_MEASUREMENTS_FILE,String(F("TIME HERE,")) + rainLevel + String(F(",")) + riverLevel );
+    sd->writeFile(_MEASUREMENTS_FILE,time + rainLevel + String(F(",")) + riverLevel );
 
     // sd->writeFile(F("teest.txt"),F("HELLO WORLD PLEASE GUMANA KA NA"));
 
     lcd->clear();
 
-    lcd->printText(String(F("TIME HERE")),0);
+    lcd->printText(time,0);
     lcd->printText(String(F("RAI:")) + String(rainLevel) + String(F(" RIV: ")) + String(riverLevel), 1);
 
     // lcd.printText(String(F("Rain Level")), String(currentRainLevel), 0);

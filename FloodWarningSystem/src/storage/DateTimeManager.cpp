@@ -23,3 +23,18 @@ void DateTimeManager::updateDateTime(){
     RtcDateTime module_date_time = Rtc.GetDateTime();
     module_date_time < compiler_date_time ? Rtc.SetDateTime(compiler_date_time) : void();
 }
+
+
+String DateTimeManager::getCurrentTime(){
+    RtcDateTime now = Rtc.GetDateTime();
+    return String(now.Month()) + String(F("/")) + String(now.Day()) + String(F(" "))
+        + String(now.Hour()) + String(F(":")) + String(now.Minute()) + String(F(":")) + String(now.Second());  
+} 
+
+bool DateTimeManager::withinInterval(RtcDateTime previous, int threshold){
+    RtcDateTime now = Rtc.GetDateTime();
+
+
+}
+
+

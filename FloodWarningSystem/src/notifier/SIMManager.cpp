@@ -9,7 +9,7 @@ SIMManager::SIMManager(const int SIM_RX_PIN, const int SIM_TX_PIN, const int SIM
     }
 
 void SIMManager::begin(){
-    _buffer.reserve(128);
+    //_buffer.reserve(128);
     SIM.begin(9600);
 }
 
