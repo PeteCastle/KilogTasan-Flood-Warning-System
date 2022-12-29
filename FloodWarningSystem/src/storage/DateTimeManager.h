@@ -10,13 +10,18 @@
 #include <ThreeWire.h>
 #include <RtcDS1302.h>
 
+#define MESSAGE_INTERVAL (int) 30  // In minutes
+
 class DateTimeManager{
     public:
-        DateTimeManager(int DATA_PIN, int CLOCK_PIN, int RESET_PIN);
+        DateTimeManager(byte DATA_PIN, byte CLOCK_PIN, byte RESET_PIN);
         void begin();
         void updateDateTime();
+        String getCurrentDate();
         String getCurrentTime();
-        bool withinInterval(RtcDateTime previous, int threshold);
+        String getCurrentDateTimeString();
+        RtcDateTime getCurrentDateTime();
+        bool withinInterval(RtcDateTime *previous, int timeInterval = MESSAGE_INTERVAL);
 
     private:
         ThreeWire datetimeWire;

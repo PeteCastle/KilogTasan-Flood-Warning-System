@@ -1,10 +1,11 @@
 #include "LCDManager.h"
 
-LCDManager::LCDManager(uint8_t  address,  uint8_t colCount, uint8_t rowCount):
-    _address(address),
-    _colCount(colCount),
-    _rowCount(rowCount),
-    LiquidCrystal_I2C(address, colCount, rowCount){
+#define LCD_ADDRESS (uint8_t) 0x27
+#define LCD_CHAR_COUNT (uint8_t) 16
+#define LCD_ROW_COUNT (int) 2
+
+LCDManager::LCDManager():
+    LiquidCrystal_I2C(LCD_ADDRESS, LCD_CHAR_COUNT, LCD_ROW_COUNT){
     
 }
 void LCDManager::begin(){
@@ -18,7 +19,7 @@ void LCDManager::begin(){
 }
 void LCDManager::printText(String attributeName, int value, int row){
     LiquidCrystal_I2C::setCursor(0,row);
-    LiquidCrystal_I2C::print(attributeName + ":");
+    LiquidCrystal_I2C::print(attributeName + String(F(":")));
     LiquidCrystal_I2C::setCursor(attributeName.length()+1, row);
     LiquidCrystal_I2C::print(value);
     // Serial.println(attributeName + ": ");
@@ -26,7 +27,7 @@ void LCDManager::printText(String attributeName, int value, int row){
 }
 void LCDManager::printText(String attributeName, String value, int row){
     LiquidCrystal_I2C::setCursor(0,row);
-    LiquidCrystal_I2C::print(attributeName + ":");
+    LiquidCrystal_I2C::print(attributeName + String(F(":")));
     LiquidCrystal_I2C::setCursor(attributeName.length()+1, row);
     LiquidCrystal_I2C::print(value);
     // Serial.println(attributeName + ": " + value);

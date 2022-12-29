@@ -1,6 +1,6 @@
 #include "SIMManager.h"
 
-SIMManager::SIMManager(const int SIM_RX_PIN, const int SIM_TX_PIN, const int SIM_RESET_PIN) :
+SIMManager::SIMManager(const byte SIM_RX_PIN, const byte SIM_TX_PIN, const byte SIM_RESET_PIN) :
     _SIM_RX_PIN(SIM_RX_PIN),
     _SIM_TX_PIN(SIM_TX_PIN),
     _SIM_RESET_PIN(SIM_RESET_PIN),
@@ -33,40 +33,67 @@ void SIMManager::reset(){
     delay(1000);
 
     SIM.print(F("AT\r\n"));
-    while (_readSerial().indexOf("OK")==-1 ){
+    while (_readSerial().indexOf(F("OK"))==-1 ){
         SIM.print(F("AT\r\n"));
     }
     
-    while (_readSerial().indexOf("SMS")==-1 ){}
+    while (_readSerial().indexOf(F("SMS"))==-1 ){}
 }
 
 bool SIMManager::sendSms(String number, String text){
     Serial.println(String(F("Sending a message...")));
     SIM.print(F("AT+CMGF=1\r")); //set sms to text mode 
-    delay(200);
+    delay(400);
+    // _buffer=_readSerial();
+
+    SIM.print (F("AT+CMGS=\""));  // command to send sms
+    SIM.print (number);         
+    SIM.print(F("\"\r"));     
+    delay(400);    
+    //_buffer=_readSerial(); 
+
+    SIM.print (text);
+    SIM.print ("\r"); //change delay 100 to readserial	
+    // _buffer=_readSerial();
+    SIM.print((char)26);
+    delay(400);
+    _buffer=_readSerial();
+    //expect CMGS:xxx   , where x is a number,for the sending sms.
+    _buffer.indexOf(F("CMGS"))  != -1 ? Serial.println(String(F("Successfully sent a message to ")) + String(number)) : Serial.println(String(F("Failed to send a message to ")) + number);
+    return _buffer.indexOf(F("CMGS"))  != -1 ?  true: false;
+}
+
+bool SIMManager::sendSms(String number, String *text){
+    Serial.println(F("Sending message with pointer"));
+    
+    //Serial.println(String(F("Sending a message...")));
+    SIM.print(F("AT+CMGF=1\r")); //set sms to text mode 
+    delay(400);
     _buffer=_readSerial();
 
     SIM.print (F("AT+CMGS=\""));  // command to send sms
     SIM.print (number);         
     SIM.print(F("\"\r"));     
-    delay(200);    
+    delay(400);    
     _buffer=_readSerial(); 
-
-    SIM.print (text);
+    SIM.print (*text);
     SIM.print ("\r"); //change delay 100 to readserial	
     _buffer=_readSerial();
     SIM.print((char)26);
     _buffer=_readSerial();
     //expect CMGS:xxx   , where x is a number,for the sending sms.
-    _buffer.indexOf("CMGS")  != -1 ? Serial.println(String(F("Successfully sent a message to ")) + number) : Serial.println(String(F("Failed to send a message to ")) + number);
-    return _buffer.indexOf("CMGS")  != -1 ?  true: false;
+    if(_buffer.indexOf(F("CMGS"))  != -1 ){
+        Serial.print(F("Successfully sent a message to "));
+        Serial.println(number);
+    }
+    else{
+        Serial.print(F("Failed to send a message to "));
+        Serial.println(number);
+        Serial.println(_buffer);
+    }
+    return _buffer.indexOf(F("CMGS"))  != -1 ?  true: false;
 }
 
-void SIMManager::sendSmsMultipleRecipients(String message, Vector<String> listOfRecipients){
-    for(String recipient : listOfRecipients){
-        sendSms(recipient, message);
-    }
-}
 
 bool SIMManager::getSIMConnectivityStatus(){
     SIM.print(F("AT+CREG?\r"));
@@ -147,7 +174,6 @@ void SIMManager::sendHttpRequest(String URI){
     delay(10000);
     _buffer = _readSerial();
     SIM.print(F("AT+HTTPREAD\r"));
-    Serial.println("HTTP READ VALUE:");
     Serial.println(_readSerial());
 
     SIM.print(F("AT+HTTPTERM"));
@@ -156,5 +182,35 @@ void SIMManager::sendHttpRequest(String URI){
     SIM.print(F("AT+SAPBR=0,1\r"));
     _buffer = _readSerial();
 
-    Serial.println("end of method:");
+
+}
+
+void SIMManager::sendMessageToAllRecipients(String *content, SDManager *sd){
+    String RECIPIENTS_FILE = String(F("sendlist.txt"));
+    
+    File dataFile = SD.open(RECIPIENTS_FILE);
+
+    if(dataFile){
+        String tempString;
+        while(dataFile.available()){
+            int ascii = dataFile.read();
+            if(ascii==10){}
+            else if(ascii!=13){ // If not a newline character
+                tempString+= (char) ascii;
+            }
+            else{
+                sendSms(tempString,content);
+                tempString="";
+            }
+        }
+        tempString != ""  ? sendSms(tempString,content) : bool();
+        dataFile.close();
+        Serial.println(String(F("Read contents of file ")) + RECIPIENTS_FILE + String(F(" complete...")));
+        //return tempString;
+    }
+    else{
+        Serial.print(F("An error has occured while opening file: "));
+        Serial.println(RECIPIENTS_FILE);
+    }
+    //return String(F("Null"));
 }

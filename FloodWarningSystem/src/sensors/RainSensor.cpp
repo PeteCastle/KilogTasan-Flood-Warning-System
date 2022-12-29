@@ -1,13 +1,16 @@
 #include "RainSensor.h"
 
-RainSensor::RainSensor(const uint8_t RAIN_SENSOR_PIN, byte samples, const byte SENSITIVITY, const byte YELLOW_RAIN_THRESHOLD, const byte ORANGE_RAIN_THRESHOLD, const byte RED_RAIN_THRESHOLD) :
+RainSensor::RainSensor(const uint8_t RAIN_SENSOR_PIN, byte samples) :
     _RAIN_SENSOR_PIN(RAIN_SENSOR_PIN),
     _samples(samples),
-    _SENSITIVITY(SENSITIVITY),
-    _YELLOW_RAIN_THRESHOLD(YELLOW_RAIN_THRESHOLD),
-    _ORANGE_RAIN_THRESHOLD(ORANGE_RAIN_THRESHOLD),
-    _RED_RAIN_THRESHOLD(ORANGE_RAIN_THRESHOLD){
+    _YELLOW_RAIN_THRESHOLD(80),
+    _ORANGE_RAIN_THRESHOLD(90),
+    _RED_RAIN_THRESHOLD(100){
         
+
+//         #define YELLOW_RAIN_THRESHOLD (byte) 80 
+// #define ORANGE_RAIN_THRESHOLD (byte) 90 
+// #define RED_RAIN_THRESHOLD (byte) 100 
     }
 
 void RainSensor::begin(){
@@ -25,35 +28,11 @@ int RainSensor::getSensorValue(){
 
 byte RainSensor::getSampledValue(){
     int Y = getSensorValue();
-    // byte val = 0;
-    // int sumXY = 0;
-    // int sumX = 0;
-    // int sumY = 0;
-    // int sumX2 = 0;
-    // if(_samples < 1){
-    //     _samples = 1;
-    // }
-    // for(int i = 0; i < _SENSITIVITY; i++) {
-    //     int Y = getSensorValue();
-    //     sumXY += i * Y;
-    //     sumX += i;
-    //     sumY += Y;
-    //     sumX2 += i * i;
-    // }
-
-    // Serial.println("THIS ONE");
-    // Serial.println((_SENSITIVITY * sumXY - sumX * sumY));
-    // Serial.println("THIS TWO");
-    // Serial.println((_SENSITIVITY * sumX2 - sumX * sumX));
-    // val = (_SENSITIVITY * sumXY - sumX * sumY) / (_SENSITIVITY * sumX2 - sumX * sumX);
-    // if(val < 0) val *= -1;
-    // if(val > 100) val = 100;
-
     return map(Y, 0, 1023, 0, 100);;
 
 }
 
-int RainSensor::getWarningLevel(int currentRainLevel = -1){
+byte RainSensor::getWarningLevel(int currentRainLevel = -1){
     currentRainLevel==-1 ? currentRainLevel = getSampledValue() : false;
 
     if (currentRainLevel >= _RED_RAIN_THRESHOLD ){
@@ -69,7 +48,7 @@ int RainSensor::getWarningLevel(int currentRainLevel = -1){
         return 0;
     }
     else{
-        Serial.println("rainLevel outside the range.");
+        Serial.println(F("rainLevel outside the range."));
     }
 
 }
