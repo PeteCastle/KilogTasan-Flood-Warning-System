@@ -114,7 +114,7 @@ void setup(){
     //sim.sendHttpRequest(CURRENT_DATE_TIME);
 }
 
-String getAlertLevelName(byte currentWarning){
+String getAlertLevelName(int currentWarning){
     switch(currentWarning){
         case 0: return String(F(" No Alert")); break;
         case 1: return String(F(" Yellow Alert")); break;
@@ -124,8 +124,64 @@ String getAlertLevelName(byte currentWarning){
     }
 }
 
+void warnResidents(byte *currentRainLevel, int *currentRiverLevel, byte *currentRainWarning, byte *currentLevelWarning, String *currentTime ){
+    String warningMessage;
+    warningMessage[0] = '\0';
+    String RIVER_NAME  = String(F("Itlog ni Cortez"));
+    String standardMessage1 = String(F("[RIVER WARNING] "));
+    String standardMessage2 = String(F("[RAIN WARNING] "));
+
+    Serial.println(*currentRainWarning);
+    Serial.println(*currentLevelWarning);
+
+    //If rain only
+    if (*currentRainWarning > 0 && *currentLevelWarning == 0){ 
+        warningMessage+=standardMessage2;
+        warningMessage+= *currentTime;
+        warningMessage+=getAlertLevelName( (int) currentRainWarning);
+        String alertLevelRainOnly = String(F(" ang pag-ulan malapit sa "));
+        warningMessage+=alertLevelRainOnly;
+        String rainWarning  = String(F(".Asahan ang pag-ulan sa loob ng ilang oras."));
+        warningMessage+=RIVER_NAME;
+        warningMessage+=rainWarning;
+    }
+    //If river level only
+    else if(*currentLevelWarning > 0 && *currentRainWarning == 0){
+        warningMessage+=standardMessage1;
+        warningMessage+= *currentTime;
+        warningMessage+=getAlertLevelName( (int) *currentLevelWarning);
+        warningMessage+=String(F(" sa "));
+        warningMessage+=RIVER_NAME;
+
+        switch( (int) *currentLevelWarning){
+            case 1: warningMessage+=String(F(". Mag-ingat sa posibilidad ng pagbaha sa loob ng ilang oras.")); break;
+            case 2: warningMessage+=String(F(". Inaanyayahan ang lahat na lumikas sa evacuation center.")); break;
+            case 3: warningMessage+=String(F(". Inuutusan ang lahat na lumikas sa evacuation center.")); break;
+            default: break;
+        }
+    }
+    else{
+        byte higherLevel = *currentRainWarning>=*currentLevelWarning ? *currentRainWarning : *currentLevelWarning;
+        warningMessage+=standardMessage1;
+        warningMessage+=*currentTime;
+        warningMessage+=getAlertLevelName( (int) higherLevel);
+        warningMessage+=String(F(" ngayon ang pag-ulan at ang kalagayan sa "));
+        warningMessage+=RIVER_NAME;
+        switch( (int) *currentLevelWarning){
+            case 1: warningMessage+=String(F(". Mag-ingat sa posibilidad ng pagbaha at pagulan sa loob ng ilang oras.")); break;
+            case 2: warningMessage+=String(F(". Inaanyayahan ang lahat na lumikas sa pinakamalapit na evacuation center.")); break;
+            case 3: warningMessage+=String(F(". Inuutusan ang lahat na lumikas sa pinakamalapit na evacuation center.")); break;
+            default: break;
+        }
+    }
+    sim.sendMessageToAllRecipients(&warningMessage, &sd);
+    Serial.println(warningMessage);
+}
+
 
 void loop(){
+    delay(1000);
+    
     String currentTime = datetime.getCurrentDateTimeString();
     byte currentRainLevel = rainSensor.getSampledValue();
     int currentRiverLevel = ultrasonicSensor.getDistance();
@@ -135,60 +191,17 @@ void loop(){
  
     logger.measureLog(currentTime, currentRainLevel, currentRiverLevel);
 
-    if (currentRainWarning > 0 | currentLevelWarning > 0){
-        String warningMessage;
-        warningMessage[0] = '\0';
-        String RIVER_NAME  = String(F("Itlog ni Cortez"));
-        String standardMessage1 = String(F("[RIVER WARNING] "));
-        String standardMessage2 = String(F("[RAIN WARNING] "));
 
-        //If rain only
-        if(currentRainWarning > 0 && currentLevelWarning == 0){ 
-            warningMessage+=standardMessage2;
-            warningMessage+=currentTime;
-            warningMessage+=getAlertLevelName(currentRainWarning);
-            String alertLevelRainOnly = String(F(" ang pag-ulan malapit sa "));
-            warningMessage+=alertLevelRainOnly;
-            String rainWarning  = String(F(".Asahan ang pag-ulan sa loob ng ilang oras."));
-            warningMessage+=RIVER_NAME;
-            warningMessage+=rainWarning;
-        }
-        //If river level only
-        else if(currentLevelWarning > 0 && currentRainWarning == 0){
-            warningMessage+=standardMessage1;
-            warningMessage+=currentTime;
-            warningMessage+=getAlertLevelName(currentLevelWarning);
-            warningMessage+=String(F(" sa "));
-            warningMessage+=RIVER_NAME;
+  
+    if (!(currentRainWarning > 0 | currentLevelWarning > 0)) return;
+    // logger.standardLog(F("Alert conditions passed."));
 
-            switch(currentLevelWarning){
-                case 1: warningMessage+=String(F(". Mag-ingat sa posibilidad ng pagbaha sa loob ng ilang oras.")); break;
-                case 2: warningMessage+=String(F(". Inaanyayahan ang lahat na lumikas sa evacuation center.")); break;
-                case 3: warningMessage+=String(F(". Inuutusan ang lahat na lumikas sa evacuation center.")); break;
-                default: break;
-            }
-        }
-        else{
-            byte higherLevel = currentRainWarning>=currentLevelWarning ? currentRainWarning : currentLevelWarning;
-            warningMessage+=standardMessage1;
-            warningMessage+=currentTime;
-            warningMessage+=getAlertLevelName(higherLevel);
-            warningMessage+=String(F(" ngayon ang pag-ulan at ang kalagayan sa "));
-            warningMessage+=RIVER_NAME;
-            switch(currentLevelWarning){
-                case 1: warningMessage+=String(F(". Mag-ingat sa posibilidad ng pagbaha at pagulan sa loob ng ilang oras.")); break;
-                case 2: warningMessage+=String(F(". Inaanyayahan ang lahat na lumikas sa pinakamalapit na evacuation center.")); break;
-                case 3: warningMessage+=String(F(". Inuutusan ang lahat na lumikas sa pinakamalapit na evacuation center.")); break;
-                default: break;
-            }
-        }
-        sim.sendMessageToAllRecipients(&warningMessage, &sd);
-        Serial.println(warningMessage);
+    if (!datetime.withinInterval(&timeSinceLastWarning)) return;
+    logger.standardLog(F("Alert interval passed..."));
 
-        sd.writeFileReplace(String(F("lastmsgd.txt")),datetime.getCurrentDate());
-        sd.writeFileReplace(String(F("lastmsgt.txt")),datetime.getCurrentTime());
-
-        timeSinceLastWarning = datetime.getCurrentDateTime();
-    }
-    delay(20000);
+    warnResidents(&currentRainLevel, &currentRiverLevel, &currentRainWarning, &currentLevelWarning, &currentTime);
+    sd.writeFileReplace(String(F("lastmsgd.txt")),datetime.getCurrentDate());
+    sd.writeFileReplace(String(F("lastmsgt.txt")),datetime.getCurrentTime());
+    timeSinceLastWarning = datetime.getCurrentDateTime();
+    
 }

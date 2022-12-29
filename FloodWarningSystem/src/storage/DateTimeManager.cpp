@@ -29,7 +29,7 @@ RtcDateTime DateTimeManager::getCurrentDateTime(){
 }
 String DateTimeManager::getCurrentDateTimeString(){
     RtcDateTime now = Rtc.GetDateTime();
-    return String(now.Month()) + String(F("/")) + String(now.Day()) + String(F(" "))
+    return String(now.Month()) + String(F("/")) + String(now.Day()) + String(F("/")) + String(now.Year()-2000)  +String(F(" "))
         + String(now.Hour()) + String(F(":")) + String(now.Minute()) + String(F(":")) + String(now.Second());  
 } 
 
@@ -59,9 +59,9 @@ String DateTimeManager::getCurrentTime(){
     RtcDateTime now = Rtc.GetDateTime();
     return String(now.Hour()) + String(F(":")) + String(now.Minute()) + String(F(":")) + String(now.Second());  
 }
-bool DateTimeManager::withinInterval(RtcDateTime *previous, int timeInterval){ //in minutes
+bool DateTimeManager::withinInterval(RtcDateTime *previous, int timeInterval){ // tmeInterval in minutes
     RtcDateTime now = Rtc.GetDateTime();
-    return previous.Minutes() - now.Minutes() >= timeInterval ? true : false;
+    return (now.TotalSeconds() - previous->TotalSeconds()) >= timeInterval * 60;
 }
 
 

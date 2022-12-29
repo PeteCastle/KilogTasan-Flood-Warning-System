@@ -10,7 +10,7 @@
 #include <ThreeWire.h>
 #include <RtcDS1302.h>
 
-#define MESSAGE_INTERVAL (int) 30  // In minutes
+#define MESSAGE_INTERVAL (int) 5  // In minutes
 
 class DateTimeManager{
     public:
