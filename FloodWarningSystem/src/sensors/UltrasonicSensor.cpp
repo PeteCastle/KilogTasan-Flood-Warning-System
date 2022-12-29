@@ -2,14 +2,15 @@
 #include <Wire.h>
 
 
-UltrasonicSensor::UltrasonicSensor(const int TRIG_PIN, const int ECHO_PIN, const double RIVER_DEPTH, const int YELLOW_LEVEL_THRESHOLD, const int ORANGE_LEVEL_THRESHOLD, const int RED_LEVEL_THRESHOLD) : 
+UltrasonicSensor::UltrasonicSensor(const byte TRIG_PIN, const byte ECHO_PIN, const double RIVER_DEPTH) : 
     _TRIG_PIN(TRIG_PIN), 
     _ECHO_PIN(ECHO_PIN),
     _RIVER_DEPTH(RIVER_DEPTH),
-    _YELLOW_LEVEL_THRESHOLD(YELLOW_LEVEL_THRESHOLD),
-    _ORANGE_LEVEL_THRESHOLD(ORANGE_LEVEL_THRESHOLD),
-    _RED_LEVEL_THRESHOLD(RED_LEVEL_THRESHOLD){
-        
+    _YELLOW_LEVEL_THRESHOLD(300),
+    _ORANGE_LEVEL_THRESHOLD(200),
+    _RED_LEVEL_THRESHOLD(100){
+
+
 }
 void UltrasonicSensor::begin(){
     pinMode(_TRIG_PIN, OUTPUT);
@@ -51,22 +52,26 @@ double UltrasonicSensor::getRiverLevel(int currentDistance){
     }
 }
 
-int UltrasonicSensor::getWarningLevel(int currentDistance){
+byte UltrasonicSensor::getWarningLevel(int currentDistance){
     currentDistance==-1 ? currentDistance = getDistance() : false;
 
     if (currentDistance <= _RED_LEVEL_THRESHOLD ){
+        // Serial.println("red OF THE ABOVE");
         return 3;
     }
     else if (currentDistance <= _ORANGE_LEVEL_THRESHOLD && currentDistance > _RED_LEVEL_THRESHOLD){
+        // Serial.println("orange OF THE ABOVE");
         return 2;
     }
     else if (currentDistance <= _YELLOW_LEVEL_THRESHOLD && currentDistance > _ORANGE_LEVEL_THRESHOLD){
+        // Serial.println("yellow OF THE ABOVE");
         return 1;
     }
     else if (currentDistance >_YELLOW_LEVEL_THRESHOLD){
+        // Serial.println("NONE OF THE ABOVE");
         return 0;
     }
     else{
-        Serial.println(String(F("currentDistance outside the range.")));
+        Serial.println(F("currentDistance outside the range."));
     }
 }

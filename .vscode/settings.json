@@ -1,3 +1,4 @@
 {
-    "C_Cpp.errorSquiggles": "disabled"
+    "C_Cpp.errorSquiggles": "disabled",
+    "appService.defaultWebAppToDeploy": "/subscriptions/2d0baaac-6373-4d60-8c15-c9da7630562e/AppServices/subscriptions/2d0baaac-6373-4d60-8c15-c9da7630562e/resourceGroups/cloud-shell-storage-southeastasia/providers/Microsoft.Web/sites/ArduinoFloodWarningServer",
 }

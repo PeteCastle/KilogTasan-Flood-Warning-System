@@ -1,6 +1,6 @@
  #include "SDManager.h"
 
- SDManager::SDManager(int SD_CS_PIN):
+ SDManager::SDManager(byte SD_CS_PIN):
     _SC_CS_PIN(SD_CS_PIN){
     }
 
@@ -13,7 +13,7 @@ bool SDManager::begin(){
         // Serial.println("Note: press reset button on the board and reopen this Serial Monitor after fixing your issue!");
         return false;
     }
-    Serial.println(String(F("initialization done.")));
+    Serial.println(String(F("SD initialization done.")));
     return true;
 }
 
@@ -22,62 +22,56 @@ void SDManager::writeFile(const String filePath, String value){
     if(dataFile){
         dataFile.println(value);
         dataFile.close();
-        Serial.println(String(F("The following contents were added to the file ")) + filePath + ": \n" + value);
+        Serial.print(F("A text was added to the file:  "));
+        Serial.println(filePath);
     }
     else{
-        Serial.println(String(F("An error has occured while opening file: ")) + filePath);
+        Serial.print(F("An error has occured while opening file: "));
+        Serial.println(filePath);
     }
 }
-void SDManager::writeFile(String filePath, Vector<String> values){
+
+void SDManager::writeFileReplace(const String filePath, String value){
+    removeFile(filePath);
     File dataFile = SD.open(filePath, FILE_WRITE);
-
     if(dataFile){
-        for( String value : values) dataFile.println(value + "\n");
-        
-        Serial.println(String(F("The following contents were added to the file ")) + filePath);
+        dataFile.println(value);
         dataFile.close();
+        Serial.print(F("A text was added to the file:  "));
+        Serial.println(filePath);
     }
     else{
-        Serial.println(String(F("An error has occured while opening file: ")) + filePath);
+        Serial.print(F("An error has occured while opening file: "));
+        Serial.println(filePath);
     }
 }
 
-Vector<String> SDManager::readFile(String filePath){
+String SDManager::readFile(String filePath){
     File dataFile = SD.open(filePath);
 
-    String storage_array[1];
-    Vector<String> vector(storage_array);
-
-    char *tempString;
-    const char* delimiter = "\n";
-
+    String tempString;
     if(dataFile){
         while(dataFile.available()){
+            //strcat(tempString,(char) dataFile.read() );
             tempString += (char) dataFile.read();
-            //Serial.write(dataFile.read());
-            // vector.push_back(dataFile.read());
         }
         dataFile.close();
-        
-        char *split = strtok(tempString, delimiter);
-        
-        while(split != nullptr){
-            vector.push_back(String(split));
-            split = strtok(nullptr, delimiter);
-        }
 
-        Serial.println(String(F("Read contents of file ")) + filePath + String(F(" complete.")));
-        return vector;
+        Serial.println(String(F("Read contents of file ")) + filePath + String(F(" complete...")));
+        return tempString;
     }
-
     else{
-        Serial.println(String(F("An error has occured while opening file: ")) + filePath);
+        Serial.print(F("An error has occured while opening file: "));
+        Serial.println(filePath);
     }
-    return vector;
+    return String(F("Null"));
 }
 
 void SDManager::removeFile(const String filePath){
     SD.remove(filePath);
-    Serial.println("Removed file: " + filePath);
+    Serial.print(F("Removed file: "));
+    Serial.println(filePath);
 }
+
+
 
