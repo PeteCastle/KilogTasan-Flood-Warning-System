@@ -1,8 +1,5 @@
 #include "DateTimeManager.h"
 
-// ThreeWire myWire(RTC_RESET_PIN,RTC_DATA_PIN,RTC_CLOCK_PIN); // IO, SCLK, CE
-// RtcDS1302<ThreeWire> Rtc(myWire);
-
 DateTimeManager::DateTimeManager(const byte DATA_PIN, const byte CLOCK_PIN, const byte RESET_PIN):
     datetimeWire(DATA_PIN, CLOCK_PIN, RESET_PIN),
     Rtc(datetimeWire){

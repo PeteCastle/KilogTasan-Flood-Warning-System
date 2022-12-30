@@ -52,7 +52,6 @@ String SDManager::readFile(String filePath){
     String tempString;
     if(dataFile){
         while(dataFile.available()){
-            //strcat(tempString,(char) dataFile.read() );
             tempString += (char) dataFile.read();
         }
         dataFile.close();

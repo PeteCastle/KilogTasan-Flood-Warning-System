@@ -6,8 +6,8 @@
 
 LCDManager::LCDManager():
     LiquidCrystal_I2C(LCD_ADDRESS, LCD_CHAR_COUNT, LCD_ROW_COUNT){
-    
 }
+
 void LCDManager::begin(){
     LiquidCrystal_I2C::begin();
     LiquidCrystal_I2C::backlight();
@@ -22,16 +22,12 @@ void LCDManager::printText(String attributeName, int value, int row){
     LiquidCrystal_I2C::print(attributeName + String(F(":")));
     LiquidCrystal_I2C::setCursor(attributeName.length()+1, row);
     LiquidCrystal_I2C::print(value);
-    // Serial.println(attributeName + ": ");
-    // Serial.print(value);
 }
 void LCDManager::printText(String attributeName, String value, int row){
     LiquidCrystal_I2C::setCursor(0,row);
     LiquidCrystal_I2C::print(attributeName + String(F(":")));
     LiquidCrystal_I2C::setCursor(attributeName.length()+1, row);
     LiquidCrystal_I2C::print(value);
-    // Serial.println(attributeName + ": " + value);
-    // Serial.print(value);
 }
 
 void LCDManager::printText(String value, int row){
@@ -50,7 +46,6 @@ void LCDManager::printText(String value){
         LiquidCrystal_I2C::setCursor(0,0);
         LiquidCrystal_I2C::print(value);
     }
-    // Serial.println(value);
 }
 
 void LCDManager::clear(){

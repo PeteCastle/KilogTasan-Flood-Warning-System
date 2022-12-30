@@ -16,38 +16,25 @@
 // https://github.com/arduino-libraries/SD
 // https://github.com/Makuna/Rtc/blob/master/extras/RtcTemperatureTests/RtcTemperatureTests.ino
 
-// TODO :
-// Integration of sim numbers from API to the memory card.
-// In Ultrasonic Sensor.cpp
-    // Return water level when measured distance is beyond the scope of the ultrasonic sensor.
-    // The ultrasonic sensor is not yet tested when distance is greater than 4m
-// Try to deprecate VECTOR and use methods when sending to multiple recipientss
-// Use API to get time.
-
 // FOR FUTURE UPDATES:
     // Live website status
     // Status via SMS manually by ppl.
 
-//CONFIGURATION FILES
 //Digital Pins
-
 #define SIM_TX_PIN (byte) 2
 #define SIM_RX_PIN (byte) 3
 #define ULTRASONIC_TRIG_PIN (byte) 4 
 #define ULTRASONIC_ECHO_PIN (byte) 5 
+#define SIM_RESET_PIN (byte) 6 
+#define RTC_RESET_PIN (byte) 7
+#define RTC_DATA_PIN (byte) 8
+#define RTC_CLOCK_PIN (byte) 9 
 #define SD_CS_PIN (byte) 10
 #define SD_MOSI_PIN (byte) 11
 #define SD_MISO_PIN (byte) 12
 #define SD_SCK_PIN (byte) 13
 
-//(Currently) Unimplemented Digital pins
-#define SIM_RESET_PIN (byte) 6 // Not connected as there's no use yet
-#define RTC_RESET_PIN (byte) 7
-#define RTC_DATA_PIN (byte) 8
-#define RTC_CLOCK_PIN (byte) 9 
-
 //Analog pins
-
 #define RAIN_SENSOR_PIN (uint8_t) A0 
 #define LCD_SDA_PIN (uint8_t) A4
 #define LCD_SCL_PIN (uint8_t) A5
@@ -102,15 +89,6 @@ void setup(){
         lcd.printText(String(F("SIM: Establishing connection...")));
     }
 
-
-    // String test = String(F("test"));
-    // sim.sendSms("+639297728087", test);
-    // sim.sendSms("+639369322603", test);
-    // sim.sendSms("+639990368778", test);
-    // sim.sendSms("+639959509368", test);
-    // sim.sendSms("+639065067465", test);
-
-
     //sim.sendHttpRequest(CURRENT_DATE_TIME);
 }
 
@@ -130,9 +108,6 @@ void warnResidents(byte *currentRainLevel, int *currentRiverLevel, byte *current
     String RIVER_NAME  = String(F("Itlog ni Cortez"));
     String standardMessage1 = String(F("[RIVER WARNING] "));
     String standardMessage2 = String(F("[RAIN WARNING] "));
-
-    Serial.println(*currentRainWarning);
-    Serial.println(*currentLevelWarning);
 
     //If rain only
     if (*currentRainWarning > 0 && *currentLevelWarning == 0){ 
@@ -191,13 +166,9 @@ void loop(){
  
     logger.measureLog(currentTime, currentRainLevel, currentRiverLevel);
 
-
-  
     if (!(currentRainWarning > 0 | currentLevelWarning > 0)) return;
-    // logger.standardLog(F("Alert conditions passed."));
-
     if (!datetime.withinInterval(&timeSinceLastWarning)) return;
-    logger.standardLog(F("Alert interval passed..."));
+    logger.standardLog(F("Alert conditions and interval passed... Sending message to recipients."));
 
     warnResidents(&currentRainLevel, &currentRiverLevel, &currentRainWarning, &currentLevelWarning, &currentTime);
     sd.writeFileReplace(String(F("lastmsgd.txt")),datetime.getCurrentDate());

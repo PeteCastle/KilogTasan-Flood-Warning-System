@@ -13,7 +13,6 @@ class LCDManager : public LiquidCrystal_I2C{
         void begin();
         void clear();
     private:
-      
 };
 
 #endif

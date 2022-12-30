@@ -4,9 +4,6 @@
 #include <Arduino.h>
 #include <SoftwareSerial.h>
 #include "../storage/SDManager.h"
-// #include "../libraries/Vector.h"
-
-
 
 class SIMManager{
     public:
@@ -15,7 +12,6 @@ class SIMManager{
         bool sendSms(String number, String text);
         bool sendSms(String number, String *text);
         void begin();
-       // void sendSmsMultipleRecipients(String message, Vector<String> listOfRecipients);
         void sendHttpRequest(String URI);
         bool getSIMConnectivityStatus();
         void sendMessageToAllRecipients(String *content, SDManager *sd);

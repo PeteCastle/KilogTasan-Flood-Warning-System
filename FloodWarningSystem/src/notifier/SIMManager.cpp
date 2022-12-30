@@ -15,7 +15,6 @@ void SIMManager::begin(){
 
 String SIMManager::_readSerial(){
     _timeout=0;
-    
     while(!SIM.available() && _timeout<12000) {
         //Serial.println("not available");
         delay(13);
@@ -36,7 +35,6 @@ void SIMManager::reset(){
     while (_readSerial().indexOf(F("OK"))==-1 ){
         SIM.print(F("AT\r\n"));
     }
-    
     while (_readSerial().indexOf(F("SMS"))==-1 ){}
 }
 
@@ -44,17 +42,15 @@ bool SIMManager::sendSms(String number, String text){
     Serial.println(String(F("Sending a message...")));
     SIM.print(F("AT+CMGF=1\r")); //set sms to text mode 
     delay(400);
-    // _buffer=_readSerial();
 
     SIM.print (F("AT+CMGS=\""));  // command to send sms
     SIM.print (number);         
     SIM.print(F("\"\r"));     
     delay(400);    
-    //_buffer=_readSerial(); 
 
     SIM.print (text);
     SIM.print ("\r"); //change delay 100 to readserial	
-    // _buffer=_readSerial();
+
     SIM.print((char)26);
     delay(400);
     _buffer=_readSerial();
@@ -66,7 +62,6 @@ bool SIMManager::sendSms(String number, String text){
 bool SIMManager::sendSms(String number, String *text){
     Serial.println(F("Sending message with pointer"));
     
-    //Serial.println(String(F("Sending a message...")));
     SIM.print(F("AT+CMGF=1\r")); //set sms to text mode 
     delay(400);
     _buffer=_readSerial();
@@ -94,96 +89,60 @@ bool SIMManager::sendSms(String number, String *text){
     return _buffer.indexOf(F("CMGS"))  != -1 ?  true: false;
 }
 
-
 bool SIMManager::getSIMConnectivityStatus(){
     SIM.print(F("AT+CREG?\r"));
     _buffer = _readSerial();
-    //Serial.println("START  OF BUFFER");
-    //Serial.println(_buffer);
     return _buffer.substring(18,21) == F("0,1");
-
-    // return true;
 }
-//https://m2msupport.net/m2msupport/globe-telecomphilippines-set-the-apn-to-internet-globe-com-ph/
-//https://stackoverflow.com/questions/63187583/arduino-sim900-atsapbr-1-1-operation-not-allowed
 
-void SIMManager::sendHttpRequest(String URI){
-    // SIM.print(F("AT+SAPBR=3,1,\"Contype\",\"GPRS\"\r"));
-    // _buffer = _readSerial();
+//NOTE: HTTP REQUESTS CURRENTLY NOT USED
+// void SIMManager::sendHttpRequest(String URI){
+//     // SIM.print(F("AT+SAPBR=3,1,\"Contype\",\"GPRS\"\r"));
+//     // _buffer = _readSerial();
     
-    SIM.print(F("AT+SAPBR=3,1,\"APN\",\"internet.globe.com.ph\"\r"));
-    _buffer = _readSerial();
+//     SIM.print(F("AT+SAPBR=3,1,\"APN\",\"internet.globe.com.ph\"\r"));
+//     _buffer = _readSerial();
 
-    // SIM.print(F("AT+CGDCONT= 1,\"IP\",\"http.globe.com.ph\",\"0.0.0.0\",0,0"));
-    // _buffer = _readSerial();
+//     do{
+//         Serial.println(String(F("Establishing GPRS connection")));
+//         SIM.print(F("AT+SAPBR=1,1\r"));
+//     } while(_readSerial().substring(9,12) != F("1,1"));
+//     Serial.println(String(F("GPRS connection established")));
 
-    // SIM.print(F("AT+CSTT=\"http.globe.com.ph\",\"\",\"\"\r"));
-    // _buffer = _readSerial();
-    // SIM.print(_buffer);
+//     SIM.print(F("AT+CMEE=2\r"));
+//     _buffer = _readSerial();
+//     SIM.print(_buffer);
 
-    // SIM.print(F("AT+SAPBR=1,1\r"));
-    // delay(5000);  
-    // _buffer = _readSerial();
-    // Serial.print("THS ONE");
-    // Serial.println(_buffer.substring(9,12));
-    
-//     AT+SAPBR=2,1
+//     SIM.print(F("AT+SAPBR=2,1\r"));
+//     _buffer = _readSerial();
+//     SIM.print(_buffer);
 
-// +SAPBR: 1,1,"100.94.95.53"
+//     SIM.print(F("AT+HTTPINIT\r"));
+//     _buffer = _readSerial();
+//     SIM.print(_buffer);
 
-// OK
-    do{
-        Serial.println(String(F("Establishing GPRS connection")));
-        SIM.print(F("AT+SAPBR=1,1\r"));
-    } while(_readSerial().substring(9,12) != F("1,1"));
-    Serial.println(String(F("GPRS connection established")));
+//     SIM.print(F("AT+HTTPPARA=\"CID\",1\r"));
+//     _buffer = _readSerial();
+//     SIM.print(_buffer);
 
-    SIM.print(F("AT+CMEE=2\r"));
-    _buffer = _readSerial();
-    SIM.print(_buffer);
+//     SIM.print(F("AT+HTTPPARA=\"URL\",\"http://google.com\"\r"));
+//     SIM.print(_buffer);
 
-    SIM.print(F("AT+SAPBR=2,1\r"));
-    _buffer = _readSerial();
-    SIM.print(_buffer);
+//     SIM.print(F("AT+HTTPPARA=\"CONTENT\",\"application/json\"\r"));
+//     _buffer = _readSerial();
 
-    SIM.print(F("AT+HTTPINIT\r"));
-    _buffer = _readSerial();
-    SIM.print(_buffer);
+//     SIM.print(F("AT+HTTPACTION=0\r"));
+//     delay(10000);
+//     _buffer = _readSerial();
+//     SIM.print(F("AT+HTTPREAD\r"));
+//     Serial.println(_readSerial());
 
-    SIM.print(F("AT+HTTPPARA=\"CID\",1\r"));
-    _buffer = _readSerial();
-    SIM.print(_buffer);
+//     SIM.print(F("AT+HTTPTERM"));
+//     _buffer = _readSerial();
 
-    SIM.print(F("AT+HTTPPARA=\"URL\",\"http://google.com\"\r"));
-    // SIM.print(F("AT+HTTPPARA=\"URL\",\""));
-    // Serial.println(URI);
-    // SIM.print(URI);
-    // SIM.print(F("\"\r"));
-    _buffer = _readSerial();
-    SIM.print(_buffer);
-
-    SIM.print(F("AT+HTTPPARA=\"CONTENT\",\"application/json\"\r"));
-    _buffer = _readSerial();
-
-    // SIM.print(F("AT+SAPBR=3,1"));
-    // _buffer = _readSerial();
-    // Serial.println(_buffer);
-
-
-    SIM.print(F("AT+HTTPACTION=0\r"));
-    delay(10000);
-    _buffer = _readSerial();
-    SIM.print(F("AT+HTTPREAD\r"));
-    Serial.println(_readSerial());
-
-    SIM.print(F("AT+HTTPTERM"));
-    _buffer = _readSerial();
-
-    SIM.print(F("AT+SAPBR=0,1\r"));
-    _buffer = _readSerial();
-
-
-}
+//     SIM.print(F("AT+SAPBR=0,1\r"));
+//     _buffer = _readSerial();
+// }
 
 void SIMManager::sendMessageToAllRecipients(String *content, SDManager *sd){
     String RECIPIENTS_FILE = String(F("sendlist.txt"));
@@ -206,11 +165,9 @@ void SIMManager::sendMessageToAllRecipients(String *content, SDManager *sd){
         tempString != ""  ? sendSms(tempString,content) : bool();
         dataFile.close();
         Serial.println(String(F("Read contents of file ")) + RECIPIENTS_FILE + String(F(" complete...")));
-        //return tempString;
     }
     else{
         Serial.print(F("An error has occured while opening file: "));
         Serial.println(RECIPIENTS_FILE);
     }
-    //return String(F("Null"));
 }

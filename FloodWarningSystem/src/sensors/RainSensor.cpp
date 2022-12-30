@@ -6,11 +6,6 @@ RainSensor::RainSensor(const uint8_t RAIN_SENSOR_PIN, byte samples) :
     _YELLOW_RAIN_THRESHOLD(80),
     _ORANGE_RAIN_THRESHOLD(90),
     _RED_RAIN_THRESHOLD(100){
-        
-
-//         #define YELLOW_RAIN_THRESHOLD (byte) 80 
-// #define ORANGE_RAIN_THRESHOLD (byte) 90 
-// #define RED_RAIN_THRESHOLD (byte) 100 
     }
 
 void RainSensor::begin(){
@@ -22,14 +17,12 @@ int RainSensor::getSensorValue(){
     for (size_t i=0; i< _samples; i++){
         Y -= analogRead(_RAIN_SENSOR_PIN);
     }
-    
     return Y / _samples;
 }
 
 byte RainSensor::getSampledValue(){
     int Y = getSensorValue();
     return map(Y, 0, 1023, 0, 100);;
-
 }
 
 byte RainSensor::getWarningLevel(int currentRainLevel = -1){

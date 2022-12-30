@@ -10,14 +10,11 @@ class RainSensor{
         const byte _ORANGE_RAIN_THRESHOLD;
         const byte _RED_RAIN_THRESHOLD;
         int getSensorValue();
-        
     public:
         RainSensor( uint8_t RAIN_SENSOR_PIN,  byte SAMPLES);
         byte getSampledValue();
-        //bool isRaining();
         void begin();
         byte getWarningLevel(int currentRainLevel);
-  
 };
 
 #endif

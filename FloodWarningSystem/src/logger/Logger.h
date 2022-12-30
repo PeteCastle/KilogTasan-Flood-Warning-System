@@ -11,11 +11,6 @@ class Logger{
     private:
         LCDManager *lcd;
         SDManager *sd;
-        //  String _RECIPIENTS_FILE;
-        //  String _OPERATIONS_FILE;
-        //  String _MEASUREMENTS_FILE;
-        //File Configs
-
 };
 
 #endif

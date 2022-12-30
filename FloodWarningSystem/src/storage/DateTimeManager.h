@@ -22,7 +22,6 @@ class DateTimeManager{
         String getCurrentDateTimeString();
         RtcDateTime getCurrentDateTime();
         bool withinInterval(RtcDateTime *previous, int timeInterval = MESSAGE_INTERVAL);
-
     private:
         ThreeWire datetimeWire;
         RtcDS1302<ThreeWire> Rtc;
