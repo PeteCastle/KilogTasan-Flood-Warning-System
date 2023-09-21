@@ -1,4 +1,4 @@
-# Arduino Flood Warning System
+# KilogTasan: Early Flood Warning System
 ![](resources/images/2023-09-21-21-20-31.png)
 
 *For Github publish*
@@ -22,12 +22,14 @@ The main objective of the study is to develop a flood monitoring and early warni
 ## System Architecture
 ![](resources/images/2023-09-21-21-24-46.png)
 *System Architecture of the Flood Warning System Device*
+
 The architecture of the FWS involves three layers, as illustrated in Figure 14. The (1) input data block includes sensors used for our monitoring layer. The monitoring layer includes sensors that monitor the rising river level and rain precipitation level beside the river’s vicinity. The (2) data processing block uses Arduino UNO as the system’s microcontroller and an SD Card module to store logs for the alarm and collected levels, as well as the current date and time from the RTC module. The (3) output data block uses an LCD screen for the initial presentation of measurements and a smart service through SMS for the warning notification. Lastly, the data transmission block uses a SIM800L GSM module to disseminate a warning system to the target recipients.
 
 ![](resources/images/2023-09-21-21-26-14.png)
 *Schematic Circuit Diagram of the Flood Warning System Device*
+
 A flood warning system using an Arduino microcontroller can be implemented by connecting various sensors to the Arduino board to detect water levels and rainfall. These sensors could include an ultrasonic sensor, a rain detector, or a combination of both. The Arduino would then process the sensor data and determine if a flood warning should be issued. A possible schematic diagram for such a system would include the following components:
 
 ## Demonstation
 ![](resources/images/2023-09-21-21-30-17.png)
-For demonstration, click (this YouTube Link link)[https://www.youtube.com/watch?v=hcCMMzInmZ4]
+For demonstration, click [this YouTube Link](https://www.youtube.com/watch?v=hcCMMzInmZ4)
